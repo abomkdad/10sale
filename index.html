@@ -1,0 +1,460 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1, user-scalable=no"/>
+  <title>MAD Perfumeur – طلب عبر واتساب</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/jsbarcode@3.11.6/dist/JsBarcode.all.min.js"></script>
+  <style>
+    body { background:#0b0f19; color:#fff; }
+    .no-scrollbar::-webkit-scrollbar{display:none}
+    .no-scrollbar{ -ms-overflow-style:none; scrollbar-width:none }
+    img{ -webkit-user-drag:none; user-select:none }
+  </style>
+</head>
+<body class="min-h-screen overflow-x-hidden">
+  <div id="app" class="mx-auto w-full max-w-sm px-3 pb-32">
+
+    <!-- HEADER -->
+    <header class="sticky top-0 z-30 backdrop-blur bg-[#0e1424]/80 border-b border-slate-800">
+      <div class="flex items-center gap-3 p-3">
+        <img src="img/logo.png" onerror="this.style.display='none'" alt="logo" class="h-8 w-8 rounded-full ring-2 ring-amber-500">
+        <div class="flex-1 leading-tight">
+          <h1 class="text-sm font-semibold">عطور مختارة – اطلب الآن عبر واتساب</h1>
+          <p class="text-[11px] text-slate-400">MAD Perfumeur</p>
+        </div>
+        <a id="callWa" href="#" class="text-amber-400 text-sm">واتساب</a>
+      </div>
+    </header>
+
+    <!-- SELECTED HERO IMAGE -->
+    <section class="mt-3">
+      <div class="rounded-2xl overflow-hidden border border-slate-800 bg-slate-900">
+        <img id="heroImg" src="img/p1.png" alt="العرض المختار" class="w-full aspect-[9/10] object-contain bg-black/20">
+      </div>
+    </section>
+
+    <!-- CAROUSEL -->
+    <section class="mt-3">
+      <div id="carousel" class="flex gap-3 overflow-x-auto snap-x snap-mandatory no-scrollbar px-1 pb-2">
+        <!-- عناصر الكاروسيل تُحقن عبر JS -->
+      </div>
+    </section>
+
+    <!-- ORDER CARD -->
+    <section class="mt-2">
+      <div class="rounded-2xl border border-slate-800 bg-slate-900/60">
+        <div class="p-3 border-b border-slate-800">
+          <p class="text-sm font-semibold" id="selName">—</p>
+          <p class="text-xs text-amber-400"><span id="selPrice">₪0</span> — التفاصيل</p>
+        </div>
+
+        <form id="orderForm" class="p-3 space-y-3">
+          <!-- Variant + Qty -->
+          <div class="grid grid-cols-2 gap-2">
+            <div>
+              <label class="text-[11px] text-slate-400">الخيار</label>
+              <select id="variant" class="mt-1 w-full rounded-xl bg-slate-800 border border-slate-700 p-2 text-sm"></select>
+            </div>
+            <div>
+              <label class="text-[11px] text-slate-400">الكمية</label>
+              <div class="mt-1 flex items-center rounded-xl bg-slate-800 border border-slate-700">
+                <button type="button" id="qtyMinus" class="px-3 py-2">-</button>
+                <input id="qty" value="1" class="w-full text-center bg-transparent p-2 text-sm" />
+                <button type="button" id="qtyPlus" class="px-3 py-2">+</button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Fields -->
+          <div>
+            <label class="text-[11px] text-slate-400">الاسم الكامل</label>
+            <input id="name" required placeholder="مثال: محمد جلبوني" class="mt-1 w-full rounded-xl bg-slate-800 border border-slate-700 p-2 text-sm"/>
+          </div>
+          <div>
+            <label class="text-[11px] text-slate-400">رقم الهاتف</label>
+            <input id="phone" required placeholder="05x-xxxxxxx" class="mt-1 w-full rounded-xl bg-slate-800 border border-slate-700 p-2 text-sm"/>
+          </div>
+          <div>
+            <label class="text-[11px] text-slate-400">المدينة / العنوان</label>
+            <input id="city" required placeholder="مثال: حيفا، شارع ..." class="mt-1 w-full rounded-xl bg-slate-800 border border-slate-700 p-2 text-sm"/>
+          </div>
+          <div>
+            <label class="text-[11px] text-slate-400">ملاحظات (اختياري)</label>
+            <textarea id="notes" rows="2" class="mt-1 w-full rounded-xl bg-slate-800 border border-slate-700 p-2 text-sm"></textarea>
+          </div>
+
+          <div class="flex items-start gap-2 text-xs text-slate-300">
+            <input id="agree" type="checkbox" class="mt-1">
+            <label for="agree" class="leading-snug">
+              أؤكد أنني قرأت وفهمت أن هذا النموذج خاص بالطلب فقط وليس للاستفسارات أو أي استخدام آخر، وأوافق على إتمام الطلب وفق التفاصيل التي أدخلتها.
+            </label>
+          </div>
+
+          <div class="flex gap-2">
+            <button id="submitBtn" type="submit" class="flex-1 inline-flex items-center justify-center gap-2 rounded-2xl py-3 text-sm font-semibold bg-amber-500 text-slate-900 hover:bg-amber-400 disabled:opacity-60 disabled:cursor-not-allowed">
+              إرسال الطلب عبر واتساب
+            </button>
+            <button id="previewBtn" type="button" class="px-3 rounded-2xl border border-slate-700 bg-slate-800 text-sm">معاينة الفاتورة</button>
+          </div>
+          <p class="text-center text-[11px] text-slate-400"><span id="total">₪0</span> — <span id="shortName">—</span></p>
+        </form>
+      </div>
+    </section>
+
+    <!-- ABOUT IMAGE -->
+    <section class="mt-4">
+      <img src="img/about.png" alt="عن الشركة" class="w-full rounded-2xl border border-slate-800 object-cover">
+    </section>
+
+    <!-- STICKY CTA -->
+    <div class="fixed bottom-2 inset-x-3 z-30">
+      <a href="#" id="ctaTop" class="block w-full text-center rounded-2xl py-3 bg-gradient-to-r from-amber-400 to-amber-500 text-slate-900 font-bold shadow-lg">اطلب الآن</a>
+    </div>
+  </div>
+
+  <!-- INVOICE MODAL -->
+  <div id="modal" class="hidden fixed inset-0 z-50 bg-black/70 items-center justify-center p-3">
+    <div class="w-full max-w-sm rounded-2xl bg-slate-900 border border-slate-800 overflow-hidden">
+      <div class="flex items-center justify-between p-3 border-b border-slate-800">
+        <p class="text-sm font-semibold">معاينة الفاتورة</p>
+        <button id="closeModal" class="p-1 rounded-lg bg-slate-800 border border-slate-700">إغلاق</button>
+      </div>
+      <div class="p-3 space-y-3">
+        <!-- Invoice Card (captured) -->
+        <div id="invoiceCard" class="rounded-2xl bg-gradient-to-b from-slate-950 to-slate-900 border border-slate-800 p-3 text-xs text-slate-200">
+          <div class="flex items-center gap-2">
+            <img src="img/logo.png" onerror="this.style.display='none'" class="h-8 w-8 rounded-full ring-2 ring-amber-500">
+            <div>
+              <p class="text-sm font-bold">MAD Perfumeur</p>
+              <p class="text-[10px] text-slate-400" id="invOrderId">Order #</p>
+            </div>
+          </div>
+          <div class="mt-2 rounded-xl overflow-hidden border border-slate-800">
+            <img id="invImg" src="img/p1.png" class="h-40 w-full object-contain bg-black/20">
+          </div>
+          <div class="mt-2 grid grid-cols-2 gap-2">
+            <div class="bg-slate-800/50 rounded-xl p-2">
+              <p class="text-[10px] text-slate-400">المنتج</p>
+              <p id="invProd" class="font-semibold"></p>
+            </div>
+            <div class="bg-slate-800/50 rounded-xl p-2">
+              <p class="text-[10px] text-slate-400">الخيار</p>
+              <p id="invVar" class="font-semibold"></p>
+            </div>
+            <div class="bg-slate-800/50 rounded-xl p-2">
+              <p class="text-[10px] text-slate-400">الكمية</p>
+              <p id="invQty" class="font-semibold"></p>
+            </div>
+            <div class="bg-slate-800/50 rounded-xl p-2">
+              <p class="text-[10px] text-slate-400">الإجمالي</p>
+              <p id="invTotal" class="font-semibold"></p>
+            </div>
+          </div>
+          <div class="mt-2 grid grid-cols-2 gap-2">
+            <div class="bg-slate-800/50 rounded-xl p-2">
+              <p class="text-[10px] text-slate-400">الاسم</p>
+              <p id="invName" class="font-semibold truncate">—</p>
+            </div>
+            <div class="bg-slate-800/50 rounded-xl p-2">
+              <p class="text-[10px] text-slate-400">الهاتف</p>
+              <p id="invPhone" class="font-semibold">—</p>
+            </div>
+            <div class="bg-slate-800/50 rounded-xl p-2 col-span-2">
+              <p class="text-[10px] text-slate-400">العنوان</p>
+              <p id="invCity" class="font-semibold">—</p>
+            </div>
+            <div id="invNotesWrap" class="hidden bg-slate-800/50 rounded-xl p-2 col-span-2">
+              <p class="text-[10px] text-slate-400">ملاحظات</p>
+              <p id="invNotes" class="font-semibold whitespace-pre-wrap"></p>
+            </div>
+          </div>
+          <div class="mt-3 flex items-end justify-between">
+            <div>
+              <p class="text-[10px] text-slate-400">Barcode</p>
+              <div class="bg-white rounded p-1"><svg id="barSvg"></svg></div>
+            </div>
+            <div class="text-right">
+              <p class="text-[10px] text-slate-400">Date</p>
+              <p class="font-semibold" id="invDate"></p>
+            </div>
+          </div>
+        </div>
+
+        <div class="flex items-center gap-2">
+          <button id="regen" class="flex-1 inline-flex items-center justify-center gap-2 rounded-xl bg-slate-800 border border-slate-700 py-2 text-sm">تحديث الصورة</button>
+          <a id="downloadInv" download="invoice.png" href="#" class="hidden flex-1 inline-flex items-center justify-center gap-2 rounded-xl bg-amber-500 text-slate-900 py-2 text-sm font-semibold">تنزيل الصورة</a>
+        </div>
+      </div>
+    </div>
+  </div>
+
+<script>
+/*** CONFIG ***/
+const CURRENCY = "₪";
+let WHATSAPP_NUMBER = "972525105889"; // غيّر هذا الرقم عند تبديل الموظف
+const ABOUT_IMAGE = "img/about.png";  // فقط لتذكير المسار (نستخدمه بالأعلى مباشرة)
+const ATTACH_PROMO_IMAGE_INSTEAD_OF_INVOICE = false; // إن أردت إرفاق صورة المجموعة الأصلية بدلاً من صورة الفاتورة
+
+/*** DATA ***/
+const PRODUCTS = [
+  { id:"Q106", name:"باقة 3 عطور – كلاسيك", price:300, img:"img/p1.png", variants:["كلاسيك","قوي","مخفف"] },
+  { id:"Q110", name:"باقة 5 عطور – جولد",   price:500, img:"img/p2.png", variants:["مكس","عربي","فرنسي"] },
+  { id:"T109", name:"Ombre Style",          price:120, img:"img/p3.png", variants:["100ml","50ml"] },
+  { id:"A118", name:"Aventus Style",        price:120, img:"img/p4.png", variants:["100ml","50ml"] },
+  { id:"C120", name:"Coco Style",           price:120, img:"img/p5.png", variants:["100ml","50ml"] },
+  { id:"R130", name:"Rose Oud",             price:150, img:"img/p6.png", variants:["100ml"] },
+  { id:"N101", name:"Neroli",               price:110, img:"img/p7.png", variants:["100ml"] },
+  { id:"S205", name:"Santal",               price:140, img:"img/p8.png", variants:["100ml"] },
+  { id:"M501", name:"Musk",                 price: 99, img:"img/p9.png", variants:["100ml"] },
+  { id:"H777", name:"Hair Mist Set",        price: 89, img:"img/p10.png",variants:["100ml"] },
+];
+
+let selected = PRODUCTS[0];
+let qty = 1;
+
+const els = {
+  callWa: document.getElementById('callWa'),
+  hero:   document.getElementById('heroImg'),
+  carousel: document.getElementById('carousel'),
+  selName: document.getElementById('selName'),
+  selPrice: document.getElementById('selPrice'),
+  shortName: document.getElementById('shortName'),
+  variant: document.getElementById('variant'),
+  qty: document.getElementById('qty'),
+  qtyPlus: document.getElementById('qtyPlus'),
+  qtyMinus: document.getElementById('qtyMinus'),
+  total: document.getElementById('total'),
+  form: document.getElementById('orderForm'),
+  name: document.getElementById('name'),
+  phone: document.getElementById('phone'),
+  city: document.getElementById('city'),
+  notes: document.getElementById('notes'),
+  agree: document.getElementById('agree'),
+  submit: document.getElementById('submitBtn'),
+  preview: document.getElementById('previewBtn'),
+  ctaTop: document.getElementById('ctaTop'),
+  // modal/invoice
+  modal: document.getElementById('modal'),
+  closeModal: document.getElementById('closeModal'),
+  invoiceCard: document.getElementById('invoiceCard'),
+  invImg: document.getElementById('invImg'),
+  invProd: document.getElementById('invProd'),
+  invVar: document.getElementById('invVar'),
+  invQty: document.getElementById('invQty'),
+  invTotal: document.getElementById('invTotal'),
+  invName: document.getElementById('invName'),
+  invPhone: document.getElementById('invPhone'),
+  invCity: document.getElementById('invCity'),
+  invNotesWrap: document.getElementById('invNotesWrap'),
+  invNotes: document.getElementById('invNotes'),
+  invOrderId: document.getElementById('invOrderId'),
+  invDate: document.getElementById('invDate'),
+  barSvg: document.getElementById('barSvg'),
+  regen: document.getElementById('regen'),
+  downloadInv: document.getElementById('downloadInv'),
+};
+
+function pad2(x){return String(x).padStart(2,'0')}
+function orderId(){
+  const t = new Date();
+  const stamp = String(t.getFullYear()).slice(2)+pad2(t.getMonth()+1)+pad2(t.getDate())+pad2(t.getHours())+pad2(t.getMinutes());
+  const rand = Math.floor(Math.random()*900+100);
+  return `MAD-${stamp}-${rand}`;
+}
+function fakeBarcode(){
+  let s="20"; for(let i=0;i<11;i++) s+=Math.floor(Math.random()*10); return s.slice(0,13);
+}
+function fmt(n){ return CURRENCY + n; }
+
+function normalizeILPhone(input){
+  const d = (input||"").replace(/\D+/g,"");
+  if(!d) return "";
+  if(d.startsWith("972")){
+    const local = d.slice(3);
+    return local.startsWith("0") ? local : "0"+local;
+  }
+  if(d.startsWith("05")) return d;
+  if(d.startsWith("5")) return "0"+d;
+  return d;
+}
+function toIntlNoPlus(local05){
+  const d=(local05||"").replace(/\D+/g,"");
+  if(!d) return "";
+  if(d.startsWith("972")) return d;
+  const with0 = d.startsWith("0")? d.slice(1): d;
+  return "972"+with0;
+}
+
+function buildWhatsAppText({id,prod,variant,qty,name,phone,city,notes,total}){
+  return (
+    `🧾 MAD Perfumeur — طلب جديد\n`+
+    `#${id}\n\n`+
+    `• المنتج: ${prod.name} (${prod.id})\n`+
+    `• الخيار: ${variant||"-"}\n`+
+    `• الكمية: ${qty}\n`+
+    `• الإجمالي: ${fmt(total)}\n\n`+
+    `👤 الاسم: ${name}\n`+
+    `📞 الهاتف: ${phone}\n`+
+    `📍 العنوان: ${city}\n`+
+    (notes?`📝 ملاحظات: ${notes}\n\n`:"\n")+
+    `✅ أؤكد أنني قرأت وفهمت أن هذا النموذج خاص بالطلب فقط وليس للاستفسارات.`
+  );
+}
+
+/*** UI RENDER ***/
+function renderSelected(){
+  els.hero.src = selected.img;
+  els.selName.textContent = `${selected.name} (${selected.id})`;
+  els.selPrice.textContent = fmt(selected.price);
+  els.shortName.textContent = selected.name;
+  els.variant.innerHTML = "";
+  (selected.variants||["—"]).forEach(v=>{
+    const o=document.createElement('option'); o.value=v; o.textContent=v; els.variant.appendChild(o);
+  });
+  calcTotal();
+}
+function calcTotal(){
+  let q = parseInt(els.qty.value||"1",10);
+  if(isNaN(q)||q<1) q=1;
+  qty = q;
+  els.qty.value = q;
+  els.total.textContent = fmt(q*selected.price);
+}
+
+/*** Carousel ***/
+function renderCarousel(){
+  els.carousel.innerHTML="";
+  PRODUCTS.forEach((p,idx)=>{
+    const btn=document.createElement('button');
+    btn.className="snap-start shrink-0 w-40 rounded-2xl p-2 bg-slate-900 border transition border-slate-800";
+    btn.innerHTML = `
+      <div class="relative aspect-square overflow-hidden rounded-xl bg-slate-800">
+        <img src="${p.img}" alt="${p.name}" class="h-full w-full object-contain bg-black/20">
+        <div class="absolute bottom-0 inset-x-0 p-2 bg-gradient-to-t from-black/70 to-transparent">
+          <p class="text-xs font-medium line-clamp-2">${p.name}</p>
+        </div>
+      </div>
+      <div class="flex items-center justify-between pt-2">
+        <span class="text-sm font-semibold">${fmt(p.price)}</span>
+        <span class="text-slate-400 text-xs">›</span>
+      </div>
+    `;
+    btn.addEventListener('click', ()=>{
+      selected = p;
+      renderSelected();
+      document.getElementById('app').scrollTo({top:0,behavior:'smooth'});
+    });
+    if(idx===0) btn.classList.add("border-amber-500","shadow-lg");
+    els.carousel.appendChild(btn);
+  });
+}
+
+/*** Invoice fill ***/
+function fillInvoiceFields(orderID){
+  els.invOrderId.textContent = "Order #"+orderID;
+  els.invImg.src = selected.img;        // الصورة نفسها التي اختارها الزبون
+  els.invProd.textContent = `${selected.name} (${selected.id})`;
+  els.invVar.textContent  = els.variant.value || "—";
+  els.invQty.textContent  = qty;
+  els.invTotal.textContent= fmt(qty*selected.price);
+  els.invName.textContent = els.name.value || "—";
+  els.invPhone.textContent= normalizeILPhone(els.phone.value) || "—";
+  els.invCity.textContent = els.city.value || "—";
+  const notes = els.notes.value.trim();
+  if(notes){ els.invNotesWrap.classList.remove('hidden'); els.invNotes.textContent = notes; }
+  else { els.invNotesWrap.classList.add('hidden'); els.invNotes.textContent=""; }
+  els.invDate.textContent = new Date().toLocaleString();
+  JsBarcode(els.barSvg, fakeBarcode(), {height:28, width:1.2, displayValue:false});
+}
+
+async function makeInvoiceImage(){
+  const canvas = await html2canvas(els.invoiceCard, { backgroundColor:"#0b0f19", scale:2 });
+  return canvas.toDataURL("image/png");
+}
+async function fetchImageAsFile(url, name="promo.png"){
+  const r = await fetch(url, {mode:"cors"});
+  const b = await r.blob();
+  return new File([b], name, {type: b.type || "image/png"});
+}
+
+/*** Events ***/
+els.qtyPlus.onclick = ()=>{ els.qty.value = (parseInt(els.qty.value||"1",10)+1); calcTotal(); }
+els.qtyMinus.onclick = ()=>{ els.qty.value = Math.max(1,(parseInt(els.qty.value||"1",10)-1)); calcTotal(); }
+els.qty.oninput = calcTotal;
+
+els.ctaTop.onclick = (e)=>{ e.preventDefault(); document.getElementById('app').scrollTo({top:0,behavior:'smooth'}); }
+els.callWa.href = "https://wa.me/"+WHATSAPP_NUMBER;
+
+els.preview.onclick = async ()=>{
+  const id = orderId();
+  fillInvoiceFields(id);
+  els.modal.classList.remove('hidden'); els.modal.classList.add('flex');
+  // توليد أولي للصورة
+  const dataUrl = await makeInvoiceImage();
+  els.downloadInv.classList.remove('hidden'); els.downloadInv.href = dataUrl;
+};
+els.closeModal.onclick = ()=>{ els.modal.classList.add('hidden'); els.modal.classList.remove('flex'); };
+
+els.regen.onclick = async ()=>{
+  const dataUrl = await makeInvoiceImage();
+  els.downloadInv.classList.remove('hidden'); els.downloadInv.href = dataUrl;
+};
+
+els.form.addEventListener('submit', async (e)=>{
+  e.preventDefault();
+  if(!els.agree.checked){ alert("يرجى تأكيد الموافقة على الشروط قبل الإرسال."); return; }
+
+  const id = orderId();
+  const normalized = normalizeILPhone(els.phone.value);
+  const intl = toIntlNoPlus(normalized);
+  const total = qty*selected.price;
+  const text = buildWhatsAppText({
+    id, prod:selected, variant:els.variant.value, qty,
+    name:els.name.value, phone:normalized, city:els.city.value,
+    notes:els.notes.value.trim(), total
+  });
+
+  // تجهيز الصورة (فاتورة أو صورة المجموعة)
+  let shareFile = null, shareName = `${id}.png`;
+  try {
+    if(ATTACH_PROMO_IMAGE_INSTEAD_OF_INVOICE){
+      shareFile = await fetchImageAsFile(selected.img, "promo.png");
+    }else{
+      fillInvoiceFields(id);
+      const dataUrl = await makeInvoiceImage();
+      const blob = await (await fetch(dataUrl)).blob();
+      shareFile = new File([blob], shareName, {type:"image/png"});
+    }
+  } catch(err){ console.warn("Image prepare error:", err); }
+
+  // محاولة مشاركة بملف (يختار المستخدم واتساب من واجهة المشاركة)
+  try {
+    const shareData = shareFile ? { files:[shareFile], text, title:`MAD Order #${id}` } : { text, title:`MAD Order #${id}` };
+    if(navigator.canShare && navigator.canShare(shareData)){
+      await navigator.share(shareData);
+      return;
+    }
+  } catch(err){ console.warn("Web Share error:", err); }
+
+  // Fallback: فتح واتساب بالنص فقط + إظهار تنزيل الصورة
+  window.open(`https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(text)}`,"_blank");
+  // افتح المعاينة لتتيح تنزيل الصورة
+  els.modal.classList.remove('hidden'); els.modal.classList.add('flex');
+  const dataUrl = ATTACH_PROMO_IMAGE_INSTEAD_OF_INVOICE ? selected.img : await makeInvoiceImage();
+  // إن كانت promo مباشرة، قد لا يمكن تنزيلها عبر نفس الأصل، لذلك نكتفي بالرابط:
+  if(!ATTACH_PROMO_IMAGE_INSTEAD_OF_INVOICE){
+    els.downloadInv.classList.remove('hidden'); els.downloadInv.href = dataUrl;
+  } else {
+    els.downloadInv.classList.add('hidden');
+  }
+});
+
+/*** INIT ***/
+renderCarousel();
+renderSelected();
+</script>
+</body>
+</html>
