@@ -41,14 +41,11 @@
       <p id="t_choose" class="text-center text-[12px] text-slate-400 mt-1">اختر المجموعة</p>
     </section>
 
-    <!-- ORDER CARD (بدون اسم/سعر/خيارات) -->
+    <!-- ORDER CARD (no product name/price/options) -->
     <section class="mt-2">
       <div class="rounded-2xl border border-slate-800 bg-slate-900/60">
-
-        <!-- لا يوجد هيدر للمنتج أو سعر هنا بعد الآن -->
-
         <form id="orderForm" class="p-3 space-y-3">
-          <!-- الحقول (بدون أمثلة/Placeholders) -->
+          <!-- Fields (NO placeholders) -->
           <div>
             <label id="t_name" class="text-[11px] text-slate-400">الاسم الكامل</label>
             <input id="name" required class="mt-1 w-full rounded-xl bg-slate-800 border border-slate-700 p-2 text-sm"/>
@@ -86,6 +83,7 @@
     <!-- ABOUT LONG IMAGE (auto-detect “About BNG.*”) -->
     <section class="mt-4">
       <img id="aboutImg" src="" alt="About / על החברה" class="full-bleed block h-auto" loading="lazy" decoding="async">
+      <p id="aboutStatus" class="text-center text-[12px] text-red-300 mt-1"></p>
     </section>
 
     <!-- STICKY CTA -->
@@ -108,10 +106,6 @@
           <img id="prevImg" src="img/p1.png" class="w-full object-contain bg-black/20">
         </div>
         <div class="text-xs text-slate-200 space-y-1">
-          <div><b id="t_prevProd">المنتج:</b> <span id="prevProd">—</span></div>
-          <!-- نخفي خط الخيار دائماً لأنه محذوف من النموذج -->
-          <div id="prevOptLine" class="hidden"><b id="t_prevOpt">الخيار:</b> <span id="prevOpt">—</span></div>
-          <div><b id="t_prevPrice">السعر:</b> <span id="prevPrice">₪0</span></div>
           <div><b id="t_prevName">الاسم:</b> <span id="prevName">—</span></div>
           <div><b id="t_prevPhone">الهاتف:</b> <span id="prevPhone">—</span></div>
           <div><b id="t_prevAddr">العنوان:</b> <span id="prevAddr">—</span></div>
@@ -133,16 +127,16 @@
 /*** CONFIG ***/
 let WHATSAPP_NUMBER = "972525105889"; // يمكن تغييره من الرابط ?wa=
 const PRODUCTS = [
-  { id:"Q106", name:"باقة 3 عطور – كلاسيك", price:300, img:"img/p1.png" },
-  { id:"Q110", name:"باقة 5 عطور – جولد",   price:500, img:"img/p2.png" },
-  { id:"T109", name:"Ombre Style",          price:120, img:"img/p3.png" },
-  { id:"A118", name:"Aventus Style",        price:120, img:"img/p4.png" },
-  { id:"C120", name:"Coco Style",           price:120, img:"img/p5.png" },
-  { id:"R130", name:"Rose Oud",             price:150, img:"img/p6.png" },
-  { id:"N101", name:"Neroli",               price:110, img:"img/p7.png" },
-  { id:"S205", name:"Santal",               price:140, img:"img/p8.png" },
-  { id:"M501", name:"Musk",                 price: 99, img:"img/p9.png" },
-  { id:"H777", name:"Hair Mist Set",        price: 89, img:"img/p10.png"},
+  { id:"Q106", name:"باقة 3 عطور – كلاسيك", img:"img/p1.png" },
+  { id:"Q110", name:"باقة 5 عطور – جولد",   img:"img/p2.png" },
+  { id:"T109", name:"Ombre Style",          img:"img/p3.png" },
+  { id:"A118", name:"Aventus Style",        img:"img/p4.png" },
+  { id:"C120", name:"Coco Style",           img:"img/p5.png" },
+  { id:"R130", name:"Rose Oud",             img:"img/p6.png" },
+  { id:"N101", name:"Neroli",               img:"img/p7.png" },
+  { id:"S205", name:"Santal",               img:"img/p8.png" },
+  { id:"M501", name:"Musk",                 img:"img/p9.png" },
+  { id:"H777", name:"Hair Mist Set",        img:"img/p10.png"}
 ];
 
 /*** I18N ***/
@@ -159,8 +153,6 @@ const STR = {
     preview:"معاينة",
     orderNow:"اطلب الآن",
     previewTitle:"معاينة",
-    prevProd:"المنتج:",
-    prevPrice:"السعر:",
     prevName:"الاسم:",
     prevPhone:"الهاتف:",
     prevAddr:"العنوان:",
@@ -180,8 +172,6 @@ const STR = {
     preview:"תצוגה מקדימה",
     orderNow:"הזמנה עכשיו",
     previewTitle:"תצוגה מקדימה",
-    prevProd:"מוצר:",
-    prevPrice:"מחיר:",
     prevName:"שם:",
     prevPhone:"טלפון:",
     prevAddr:"כתובת:",
@@ -217,8 +207,6 @@ const els = {
   modal:document.getElementById('modal'),
   closeModal:document.getElementById('closeModal'),
   prevImg:document.getElementById('prevImg'),
-  prevProd:document.getElementById('prevProd'),
-  prevPrice:document.getElementById('prevPrice'),
   prevName:document.getElementById('prevName'),
   prevPhone:document.getElementById('prevPhone'),
   prevAddr:document.getElementById('prevAddr'),
@@ -239,8 +227,6 @@ const els = {
     preview:document.getElementById('t_preview'),
     orderNow:document.getElementById('t_orderNow'),
     previewTitle:document.getElementById('t_previewTitle'),
-    prevProd:document.getElementById('t_prevProd'),
-    prevPrice:document.getElementById('t_prevPrice'),
     prevName:document.getElementById('t_prevName'),
     prevPhone:document.getElementById('t_prevPhone'),
     prevAddr:document.getElementById('t_prevAddr'),
@@ -265,8 +251,6 @@ function i18n(){
   els.t.preview.textContent=S.preview;
   els.t.orderNow.textContent=S.orderNow;
   els.t.previewTitle.textContent=S.previewTitle;
-  els.t.prevProd.textContent=S.prevProd;
-  els.t.prevPrice.textContent=S.prevPrice;
   els.t.prevName.textContent=S.prevName;
   els.t.prevPhone.textContent=S.prevPhone;
   els.t.prevAddr.textContent=S.prevAddr;
@@ -294,12 +278,11 @@ function toIntlNoPlus(local05){
   return "972"+with0;
 }
 
-function buildText({prod,name,phone,city,notes}){
+/* WhatsApp text: ONLY customer details (no product name/price) */
+function buildText({name,phone,city,notes}){
   const S=STR[LANG];
   return (
    `🧾 MAD Perfumeur — ${LANG==='he'?'הזמנה חדשה':'طلب جديد'}\n\n`+
-   `${S.prevProd} ${prod.name} (${prod.id})\n`+
-   `${S.prevPrice} ₪${prod.price}\n\n`+
    `${S.prevName} ${name}\n`+
    `${S.prevPhone} ${phone}\n`+
    `${S.prevAddr} ${city}\n`+
@@ -316,9 +299,7 @@ async function fetchImageAsFile(url, name="promo.png"){
 
 /*** Render selected + carousel ***/
 let selected = PRODUCTS[0];
-function renderSelected(){
-  els.hero.src = selected.img;
-}
+function renderSelected(){ els.hero.src = selected.img; }
 
 function renderCarousel(){
   els.carousel.innerHTML="";
@@ -343,8 +324,6 @@ function renderCarousel(){
 /*** Preview + send (promo image attach) ***/
 function fillPreview(){
   els.prevImg.src = selected.img;
-  els.prevProd.textContent = `${selected.name} (${selected.id})`;
-  els.prevPrice.textContent = '₪'+selected.price;
   const norm = normalizeILPhone(els.phone.value);
   els.prevName.textContent  = els.name.value || '—';
   els.prevPhone.textContent = norm || '—';
@@ -355,25 +334,32 @@ function fillPreview(){
 }
 
 async function doSend(){
-  if(!els.agree.checked){ alert(LANG==='he'?'יש לאשר את התנאים לפני שליחה':'يرجى تأكيد الموافقة على الشروط قبل الإرسال.'); return; }
+  if(!els.agree.checked){
+    alert(LANG==='he'?'יש לאשר את התנאים לפני שליחה':'يرجى تأكيد الموافقة على الشروط قبل الإرسال.');
+    return;
+  }
   const norm = normalizeILPhone(els.phone.value);
-  const intl = toIntlNoPlus(norm);
+
   const text = buildText({
-    prod:selected, name:els.name.value, phone:norm, city:els.city.value,
-    notes:(els.notes.value||"").trim()
+    name: els.name.value,
+    phone: norm,
+    city:  els.city.value,
+    notes: (els.notes.value||"").trim()
   });
 
+  // Attach selected image if possible
   let shareFile=null;
-  try{ shareFile = await fetchImageAsFile(selected.img, `${selected.id}.png`); }catch(e){}
+  try{ shareFile = await fetchImageAsFile(selected.img, `selection.png`); }catch(e){}
 
   try{
-    const data = shareFile? {files:[shareFile], text, title:'MAD Order'} : {text, title:'MAD Order'};
+    const data = shareFile ? { files:[shareFile], text, title:'MAD Order' } : { text, title:'MAD Order' };
     if(navigator.canShare && navigator.canShare(data)){
       await navigator.share(data);
       return;
     }
   }catch(e){}
 
+  // Fallback: open WhatsApp with text only and show preview to download image manually
   window.open(`https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(text)}`,"_blank");
   fillPreview();
   els.downloadPromo.classList.remove('hidden');
@@ -391,27 +377,46 @@ function canLoad(src){
   });
 }
 async function setAboutAuto(){
-  const bases = [
-    'About BNG','ABOUT BNG','about bng',
-    'About_BNG','ABOUT_BNG','about_bng',
-    'About-BNG','ABOUT-BNG','about-bng'
-  ];
+  const el = document.getElementById('aboutImg');
+  const statusEl = document.getElementById('aboutStatus');
+
+  // override via ?about=
+  const qs = new URLSearchParams(location.search);
+  const aboutQS = qs.get('about');
+  if (aboutQS) {
+    const direct = 'img/' + decodeURIComponent(aboutQS);
+    if (await canLoad(direct)) { el.src = direct; statusEl && (statusEl.textContent = ''); return; }
+  }
+
+  const bases = ['About BNG','ABOUT BNG','about bng','About_BNG','ABOUT_BNG','about_bng','About-BNG','ABOUT-BNG','about-bng'];
+  const suffixes = ['', ' (1)',' (2)',' (3)',' (final)','_final','-final'];
   const exts = ['.png','.jpg','.jpeg','.webp','.gif','.PNG','.JPG','.JPEG','.WEBP','.GIF'];
-  for(const b of bases){
-    const enc = b.replace(/\s/g,'%20');
-    for(const e of exts){
-      const p = `img/${enc}${e}`;
-      if(await canLoad(p)){ document.getElementById('aboutImg').src = p; return; }
+  const encs = s => [s, s.replace(/\s/g,'%20'), s.replace(/\s/g,'+'), s.replace(/\s/g,'%2520')];
+
+  for (const base of bases) {
+    for (const suf of suffixes) {
+      for (const e of exts) {
+        for (const p of encs(`img/${base}${suf}${e}`)) {
+          if (await canLoad(p)) { el.src = p; statusEl && (statusEl.textContent = ''); return; }
+        }
+      }
     }
   }
+  for (const f of ['about','About','ABOUT']) {
+    for (const e of exts) {
+      const p = `img/${f}${e}`;
+      if (await canLoad(p)) { el.src = p; statusEl && (statusEl.textContent = ''); return; }
+    }
+  }
+  if (statusEl) statusEl.textContent = LANG==='he' ? 'לא נמצאה תמונת About BNG בתיקיית img' : 'لم يتم العثور على صورة About BNG داخل مجلد img';
 }
 
 /*** Events ***/
-document.getElementById('ctaTop').onclick = (e)=>{e.preventDefault(); document.getElementById('app').scrollTo({top:0,behavior:'smooth'});}
 document.getElementById('previewBtn').onclick = ()=>{ fillPreview(); els.modal.classList.remove('hidden'); els.modal.classList.add('flex'); };
 document.getElementById('closeModal').onclick = ()=>{ els.modal.classList.add('hidden'); els.modal.classList.remove('flex'); };
 document.getElementById('sendFromPreview').onclick = doSend;
 document.getElementById('orderForm').addEventListener('submit', (e)=>{ e.preventDefault(); doSend(); });
+els.ctaTop.onclick = (e)=>{ e.preventDefault(); document.getElementById('orderForm').scrollIntoView({ behavior:'smooth', block:'start' }); };
 
 /*** INIT ***/
 (function init() {
