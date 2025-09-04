@@ -41,22 +41,14 @@
       <p id="t_choose" class="text-center text-[12px] text-slate-400 mt-1">اختر المجموعة</p>
     </section>
 
-    <!-- ORDER CARD -->
+    <!-- ORDER CARD (بدون اسم/سعر/خيارات) -->
     <section class="mt-2">
       <div class="rounded-2xl border border-slate-800 bg-slate-900/60">
-        <div class="p-3 border-b border-slate-800">
-          <p id="selName" class="text-sm font-semibold">—</p>
-          <p class="text-xs text-amber-400"><span id="selPrice">₪0</span> — <span id="t_details">التفاصيل</span></p>
-        </div>
+
+        <!-- لا يوجد هيدر للمنتج أو سعر هنا بعد الآن -->
 
         <form id="orderForm" class="p-3 space-y-3">
-          <!-- OPTION (hidden if none / ml removed) -->
-          <div id="optWrap">
-            <label id="t_option" class="text-[11px] text-slate-400 block mb-1">الخيار (اختياري)</label>
-            <select id="option" class="w-full rounded-xl bg-slate-800 border border-slate-700 p-2 text-sm"></select>
-          </div>
-
-          <!-- Fields (NO placeholders) -->
+          <!-- الحقول (بدون أمثلة/Placeholders) -->
           <div>
             <label id="t_name" class="text-[11px] text-slate-400">الاسم الكامل</label>
             <input id="name" required class="mt-1 w-full rounded-xl bg-slate-800 border border-slate-700 p-2 text-sm"/>
@@ -117,7 +109,8 @@
         </div>
         <div class="text-xs text-slate-200 space-y-1">
           <div><b id="t_prevProd">المنتج:</b> <span id="prevProd">—</span></div>
-          <div id="prevOptLine"><b id="t_prevOpt">الخيار:</b> <span id="prevOpt">—</span></div>
+          <!-- نخفي خط الخيار دائماً لأنه محذوف من النموذج -->
+          <div id="prevOptLine" class="hidden"><b id="t_prevOpt">الخيار:</b> <span id="prevOpt">—</span></div>
           <div><b id="t_prevPrice">السعر:</b> <span id="prevPrice">₪0</span></div>
           <div><b id="t_prevName">الاسم:</b> <span id="prevName">—</span></div>
           <div><b id="t_prevPhone">الهاتف:</b> <span id="prevPhone">—</span></div>
@@ -140,24 +133,22 @@
 /*** CONFIG ***/
 let WHATSAPP_NUMBER = "972525105889"; // يمكن تغييره من الرابط ?wa=
 const PRODUCTS = [
-  { id:"Q106", name:"باقة 3 عطور – كلاسيك", price:300, img:"img/p1.png", options:["كلاسيك","قوي","مكس","عربي","فرنسي"] },
-  { id:"Q110", name:"باقة 5 عطور – جولد",   price:500, img:"img/p2.png", options:["مكس","عربي","فرنسي"] },
-  { id:"T109", name:"Ombre Style",          price:120, img:"img/p3.png", options:["خشبي","زهري"] },
-  { id:"A118", name:"Aventus Style",        price:120, img:"img/p4.png", options:["قوي","كلاسيك"] },
-  { id:"C120", name:"Coco Style",           price:120, img:"img/p5.png", options:["زهري","فانيلا"] },
-  { id:"R130", name:"Rose Oud",             price:150, img:"img/p6.png", options:["عربي","قوي"] },
-  { id:"N101", name:"Neroli",               price:110, img:"img/p7.png", options:[] },
-  { id:"S205", name:"Santal",               price:140, img:"img/p8.png", options:["كلاسيك"] },
-  { id:"M501", name:"Musk",                 price: 99, img:"img/p9.png", options:[] },
-  { id:"H777", name:"Hair Mist Set",        price: 89, img:"img/p10.png",options:[] },
+  { id:"Q106", name:"باقة 3 عطور – كلاسيك", price:300, img:"img/p1.png" },
+  { id:"Q110", name:"باقة 5 عطور – جولد",   price:500, img:"img/p2.png" },
+  { id:"T109", name:"Ombre Style",          price:120, img:"img/p3.png" },
+  { id:"A118", name:"Aventus Style",        price:120, img:"img/p4.png" },
+  { id:"C120", name:"Coco Style",           price:120, img:"img/p5.png" },
+  { id:"R130", name:"Rose Oud",             price:150, img:"img/p6.png" },
+  { id:"N101", name:"Neroli",               price:110, img:"img/p7.png" },
+  { id:"S205", name:"Santal",               price:140, img:"img/p8.png" },
+  { id:"M501", name:"Musk",                 price: 99, img:"img/p9.png" },
+  { id:"H777", name:"Hair Mist Set",        price: 89, img:"img/p10.png"},
 ];
 
 /*** I18N ***/
 const STR = {
   ar: {
     title:"عطور مختارة – اطلب الآن عبر واتساب",
-    details:"التفاصيل",
-    option:"الخيار (اختياري)",
     choose:"اختر المجموعة",
     name:"الاسم الكامل",
     phone:"رقم الهاتف",
@@ -169,7 +160,6 @@ const STR = {
     orderNow:"اطلب الآن",
     previewTitle:"معاينة",
     prevProd:"المنتج:",
-    prevOpt:"الخيار:",
     prevPrice:"السعر:",
     prevName:"الاسم:",
     prevPhone:"الهاتف:",
@@ -180,8 +170,6 @@ const STR = {
   },
   he: {
     title:"בשמים נבחרים – הזמנה בווטסאפ",
-    details:"פרטים",
-    option:"בחירה (אופציונלי)",
     choose:"בחרו קבוצה",
     name:"שם מלא",
     phone:"מספר טלפון",
@@ -193,7 +181,6 @@ const STR = {
     orderNow:"הזמנה עכשיו",
     previewTitle:"תצוגה מקדימה",
     prevProd:"מוצר:",
-    prevOpt:"בחירה:",
     prevPrice:"מחיר:",
     prevName:"שם:",
     prevPhone:"טלפון:",
@@ -219,25 +206,18 @@ const els = {
   callWa:document.getElementById('callWa'),
   hero:document.getElementById('heroImg'),
   carousel:document.getElementById('carousel'),
-  selName:document.getElementById('selName'),
-  selPrice:document.getElementById('selPrice'),
-  optionWrap:document.getElementById('optWrap'),
-  option:document.getElementById('option'),
   name:document.getElementById('name'),
   phone:document.getElementById('phone'),
   city:document.getElementById('city'),
   notes:document.getElementById('notes'),
   agree:document.getElementById('agree'),
   form:document.getElementById('orderForm'),
-  sendBtn:document.getElementById('sendBtn'),
   previewBtn:document.getElementById('previewBtn'),
   ctaTop:document.getElementById('ctaTop'),
   modal:document.getElementById('modal'),
   closeModal:document.getElementById('closeModal'),
   prevImg:document.getElementById('prevImg'),
   prevProd:document.getElementById('prevProd'),
-  prevOpt:document.getElementById('prevOpt'),
-  prevOptLine:document.getElementById('prevOptLine'),
   prevPrice:document.getElementById('prevPrice'),
   prevName:document.getElementById('prevName'),
   prevPhone:document.getElementById('prevPhone'),
@@ -247,14 +227,27 @@ const els = {
   sendFromPreview:document.getElementById('sendFromPreview'),
   downloadPromo:document.getElementById('downloadPromo'),
   // i18n labels:
-  t:{ title:document.getElementById('t_title'), details:document.getElementById('t_details'), option:document.getElementById('t_option'),
-      choose:document.getElementById('t_choose'),
-      name:document.getElementById('t_name'), phone:document.getElementById('t_phone'), city:document.getElementById('t_city'),
-      notes:document.getElementById('t_notes'), confirm:document.getElementById('t_confirm'), send:document.getElementById('t_send'),
-      preview:document.getElementById('t_preview'), orderNow:document.getElementById('t_orderNow'), previewTitle:document.getElementById('t_previewTitle'),
-      prevProd:document.getElementById('t_prevProd'), prevOpt:document.getElementById('t_prevOpt'), prevPrice:document.getElementById('t_prevPrice'),
-      prevName:document.getElementById('t_prevName'), prevPhone:document.getElementById('t_prevPhone'), prevAddr:document.getElementById('t_prevAddr'),
-      prevNotes:document.getElementById('t_prevNotes'), sendNow:document.getElementById('t_sendNow'), download:document.getElementById('t_download')}
+  t:{
+    title:document.getElementById('t_title'),
+    choose:document.getElementById('t_choose'),
+    name:document.getElementById('t_name'),
+    phone:document.getElementById('t_phone'),
+    city:document.getElementById('t_city'),
+    notes:document.getElementById('t_notes'),
+    confirm:document.getElementById('t_confirm'),
+    send:document.getElementById('t_send'),
+    preview:document.getElementById('t_preview'),
+    orderNow:document.getElementById('t_orderNow'),
+    previewTitle:document.getElementById('t_previewTitle'),
+    prevProd:document.getElementById('t_prevProd'),
+    prevPrice:document.getElementById('t_prevPrice'),
+    prevName:document.getElementById('t_prevName'),
+    prevPhone:document.getElementById('t_prevPhone'),
+    prevAddr:document.getElementById('t_prevAddr'),
+    prevNotes:document.getElementById('t_prevNotes'),
+    sendNow:document.getElementById('t_sendNow'),
+    download:document.getElementById('t_download')
+  }
 };
 
 function i18n(){
@@ -262,8 +255,6 @@ function i18n(){
   document.documentElement.lang = LANG==='he'?'he':'ar';
   document.documentElement.dir  = 'rtl';
   els.t.title.textContent=S.title;
-  els.t.details.textContent=S.details;
-  els.t.option.textContent=S.option;
   els.t.choose.textContent=S.choose;
   els.t.name.textContent=S.name;
   els.t.phone.textContent=S.phone;
@@ -275,7 +266,6 @@ function i18n(){
   els.t.orderNow.textContent=S.orderNow;
   els.t.previewTitle.textContent=S.previewTitle;
   els.t.prevProd.textContent=S.prevProd;
-  els.t.prevOpt.textContent=S.prevOpt;
   els.t.prevPrice.textContent=S.prevPrice;
   els.t.prevName.textContent=S.prevName;
   els.t.prevPhone.textContent=S.prevPhone;
@@ -304,12 +294,11 @@ function toIntlNoPlus(local05){
   return "972"+with0;
 }
 
-function buildText({prod,opt,name,phone,city,notes}){
+function buildText({prod,name,phone,city,notes}){
   const S=STR[LANG];
   return (
    `🧾 MAD Perfumeur — ${LANG==='he'?'הזמנה חדשה':'طلب جديد'}\n\n`+
    `${S.prevProd} ${prod.name} (${prod.id})\n`+
-   (opt?`${S.prevOpt} ${opt}\n`:"")+
    `${S.prevPrice} ₪${prod.price}\n\n`+
    `${S.prevName} ${name}\n`+
    `${S.prevPhone} ${phone}\n`+
@@ -329,20 +318,6 @@ async function fetchImageAsFile(url, name="promo.png"){
 let selected = PRODUCTS[0];
 function renderSelected(){
   els.hero.src = selected.img;
-  els.selName.textContent = `${selected.name} (${selected.id})`;
-  els.selPrice.textContent = '₪'+selected.price;
-
-  // non-ml options only
-  const nonMl = (selected.options||[]).filter(x=>!/\b\d+\s*ml\b/i.test(x)&&!/ml/i.test(x));
-  els.option.innerHTML="";
-  if(nonMl.length){
-    els.optionWrap.classList.remove('hidden');
-    const emptyOpt=document.createElement('option'); emptyOpt.value=""; emptyOpt.textContent=LANG==='he'?'— ללא בחירה —':'— بدون اختيار —';
-    els.option.appendChild(emptyOpt);
-    nonMl.forEach(v=>{ const o=document.createElement('option'); o.value=v; o.textContent=v; els.option.appendChild(o); });
-  }else{
-    els.optionWrap.classList.add('hidden');
-  }
 }
 
 function renderCarousel(){
@@ -367,11 +342,8 @@ function renderCarousel(){
 
 /*** Preview + send (promo image attach) ***/
 function fillPreview(){
-  const opt = els.option.value || "";
   els.prevImg.src = selected.img;
   els.prevProd.textContent = `${selected.name} (${selected.id})`;
-  if(opt){ els.prevOptLine.classList.remove('hidden'); els.prevOpt.textContent = opt; }
-  else   { els.prevOptLine.classList.add('hidden');  els.prevOpt.textContent = "—"; }
   els.prevPrice.textContent = '₪'+selected.price;
   const norm = normalizeILPhone(els.phone.value);
   els.prevName.textContent  = els.name.value || '—';
@@ -387,8 +359,7 @@ async function doSend(){
   const norm = normalizeILPhone(els.phone.value);
   const intl = toIntlNoPlus(norm);
   const text = buildText({
-    prod:selected, opt:els.option.value||"",
-    name:els.name.value, phone:norm, city:els.city.value,
+    prod:selected, name:els.name.value, phone:norm, city:els.city.value,
     notes:(els.notes.value||"").trim()
   });
 
@@ -433,7 +404,6 @@ async function setAboutAuto(){
       if(await canLoad(p)){ document.getElementById('aboutImg').src = p; return; }
     }
   }
-  // لم تُعثر صورة؛ اتركها فارغة أو عيّن صورة افتراضية إن أردت
 }
 
 /*** Events ***/
@@ -451,7 +421,7 @@ document.getElementById('orderForm').addEventListener('submit', (e)=>{ e.prevent
   if(wa) WHATSAPP_NUMBER = wa;
   els.callWa.href = "https://wa.me/"+WHATSAPP_NUMBER;
 
-  // Language + UI
+  // Language
   LANG = detectLang(); i18n();
 
   // Render
