@@ -11,7 +11,6 @@
     .no-scrollbar{-ms-overflow-style:none;scrollbar-width:none}
     .full-bleed{width:100vw;max-width:100vw;margin-left:calc(50% - 50vw);margin-right:calc(50% - 50vw)}
     img{-webkit-user-drag:none;user-select:none;display:block}
-    /* تأشير اختيار المنتج */
     .card-selected{border-color:rgb(245 158 11)!important; box-shadow:0 0 0 2px rgb(245 158 11 / 0.35)}
     .check-badge{position:absolute; top:.4rem; inset-inline-end:.4rem; background:rgb(245 158 11); color:#111827; font-weight:700; font-size:.7rem; padding:.15rem .4rem; border-radius:.5rem}
   </style>
@@ -68,7 +67,7 @@
 
           <div class="flex items-start gap-2 text-xs text-slate-300">
             <input id="agree" type="checkbox" class="mt-1">
-            <label id="t_confirm" for="agree" class="leading-snug">...</label>
+            <label id="t_confirm" for="agree" class="leading-snug">أؤكد أن هذا النموذج خاص بالطلب فقط وليس للاستفسارات، وأوافق على إتمام الطلب وفق التفاصيل.</label>
           </div>
 
           <div class="flex gap-2">
@@ -128,7 +127,7 @@
 
 <script>
 /*** CONFIG ***/
-let WHATSAPP_NUMBER = "972506164130"; // يمكن تغييره من الرابط ?wa=
+let WHATSAPP_NUMBER = "972506164130"; // غيّره من ?wa= لو لزم
 const PRODUCTS = [
   { id:"Q106", name:"باقة 3 عطور – كلاسيك", img:"img/p1.png" },
   { id:"Q110", name:"باقة 5 عطور – جولد",   img:"img/p2.png" },
@@ -144,46 +143,18 @@ const PRODUCTS = [
 
 /*** I18N ***/
 const STR = {
-  ar: {
-    title:"عطور مختارة – اطلب الآن عبر واتساب",
-    choose:"اختر المجموعة",
-    selected:"✓ تم اختيار هذا المنتج",
-    name:"الاسم الكامل",
-    phone:"رقم الهاتف",
-    city:"المدينة / العنوان",
-    notes:"ملاحظات (اختياري)",
-    confirm:"أؤكد أن هذا النموذج خاص بالطلب فقط وليس للاستفسارات، وأوافق على إتمام الطلب وفق التفاصيل.",
-    send:"إرسال الطلب عبر واتساب",
-    preview:"معاينة",
-    orderNow:"اطلب الآن",
-    previewTitle:"معاينة",
-    prevName:"الاسم:",
-    prevPhone:"الهاتف:",
-    prevAddr:"العنوان:",
-    prevNotes:"ملاحظات:",
-    sendNow:"إرسال الطلب الآن",
-    download:"تنزيل الصورة",
-  },
-  he: {
-    title:"בשמים נבחרים – הזמנה בווטסאפ",
-    choose:"בחרו קבוצה",
-    selected:"✓ המוצר נבחר",
-    name:"שם מלא",
-    phone:"מספר טלפון",
-    city:"עיר / כתובת",
-    notes:"הערות (אופציונלי)",
-    confirm:"אני מאשר/ת שטופס זה מיועד להזמנה בלבד ולא לפניות כלליות, ומסכים/ה להשלים את ההזמנה לפי הפרטים.",
-    send:"שליחת ההזמנה בווטסאפ",
-    preview:"תצוגה מקדימה",
-    orderNow:"הזמנה עכשיו",
-    previewTitle:"תצוגה מקדימה",
-    prevName:"שם:",
-    prevPhone:"טלפון:",
-    prevAddr:"כתובת:",
-    prevNotes:"הערות:",
-    sendNow:"שלח/י הזמנה עכשיו",
-    download:"הורד/י תמונה",
-  }
+  ar: { title:"عطور مختارة – اطلب الآن عبر واتساب", choose:"اختر المجموعة", selected:"✓ تم اختيار هذا المنتج",
+        name:"الاسم الكامل", phone:"رقم الهاتف", city:"المدينة / العنوان", notes:"ملاحظات (اختياري)",
+        confirm:"أؤكد أن هذا النموذج خاص بالطلب فقط وليس للاستفسارات، وأوافق على إتمام الطلب وفق التفاصيل.",
+        send:"إرسال الطلب عبر واتساب", preview:"معاينة", orderNow:"اطلب الآن", previewTitle:"معاينة",
+        prevName:"الاسم:", prevPhone:"الهاتف:", prevAddr:"العنوان:", prevNotes:"ملاحظات:",
+        sendNow:"إرسال الطلب الآن", download:"تنزيل الصورة" },
+  he: { title:"בשמים נבחרים – הזמנה בווטסאפ", choose:"בחרו קבוצה", selected:"✓ המוצר נבחר",
+        name:"שם מלא", phone:"מספר טלפון", city:"עיר / כתובת", notes:"הערות (אופציונלי)",
+        confirm:"אני מאשר/ת שטופס זה מיועד להזמנה בלבד ולא לפניות כלליות, ומסכים/ה להשלים את ההזמנה לפי הפרטים.",
+        send:"שליחת ההזמנה בווטסאפ", preview:"תצוגה מקדימה", orderNow:"הזמנה עכשיו", previewTitle:"תצוגה מקדימה",
+        prevName:"שם:", prevPhone:"טלפון:", prevAddr:"כתובת:", prevNotes:"הערות:",
+        sendNow:"שלח/י הזמנה עכשיו", download:"הורד/י תמונה" }
 };
 function detectLang(){
   const qs=new URLSearchParams(location.search);
@@ -220,51 +191,30 @@ const els = {
   prevNotes:document.getElementById('prevNotes'),
   sendFromPreview:document.getElementById('sendFromPreview'),
   downloadPromo:document.getElementById('downloadPromo'),
-  // i18n labels:
+  // labels
   t:{
-    title:document.getElementById('t_title'),
-    choose:document.getElementById('t_choose'),
-    name:document.getElementById('t_name'),
-    phone:document.getElementById('t_phone'),
-    city:document.getElementById('t_city'),
-    notes:document.getElementById('t_notes'),
-    confirm:document.getElementById('t_confirm'),
-    send:document.getElementById('t_send'),
-    preview:document.getElementById('t_preview'),
-    orderNow:document.getElementById('t_orderNow'),
-    previewTitle:document.getElementById('t_previewTitle'),
-    prevName:document.getElementById('t_prevName'),
-    prevPhone:document.getElementById('t_prevPhone'),
-    prevAddr:document.getElementById('t_prevAddr'),
-    prevNotes:document.getElementById('t_prevNotes'),
-    sendNow:document.getElementById('t_sendNow'),
+    title:document.getElementById('t_title'), choose:document.getElementById('t_choose'),
+    orderNow:document.getElementById('t_orderNow'), previewTitle:document.getElementById('t_previewTitle'),
+    name:document.getElementById('t_name'), phone:document.getElementById('t_phone'),
+    city:document.getElementById('t_city'), notes:document.getElementById('t_notes'),
+    confirm:document.getElementById('t_confirm'), send:document.getElementById('t_send'),
+    preview:document.getElementById('t_preview'), prevName:document.getElementById('t_prevName'),
+    prevPhone:document.getElementById('t_prevPhone'), prevAddr:document.getElementById('t_prevAddr'),
+    prevNotes:document.getElementById('t_prevNotes'), sendNow:document.getElementById('t_sendNow'),
     download:document.getElementById('t_download')
   }
 };
 
 function i18n(){
-  const S=STR[LANG];
+  const S=STR[LANG] || STR.ar;
   document.documentElement.lang = LANG==='he'?'he':'ar';
   document.documentElement.dir  = 'rtl';
-  // عيّن كل النصوص بما فيها زر "اطلب الآن"
-  els.t.title.textContent=S.title;
-  els.t.choose.textContent=S.choose;
-  els.t.name.textContent=S.name;
-  els.t.phone.textContent=S.phone;
-  els.t.city.textContent=S.city;
-  els.t.notes.textContent=S.notes;
-  els.t.confirm.textContent=S.confirm;
-  els.t.send.textContent=S.send;
-  els.t.preview.textContent=S.preview;
-  els.t.orderNow.textContent=S.orderNow;      // ← مهم
-  els.t.previewTitle.textContent=S.previewTitle;
-  els.t.prevName.textContent=S.prevName;
-  els.t.prevPhone.textContent=S.prevPhone;
-  els.t.prevAddr.textContent=S.prevAddr;
-  els.t.prevNotes.textContent=S.prevNotes;
-  els.t.sendNow.textContent=S.sendNow;
-  els.t.download.textContent=S.download;
-  // شارة الاختيار
+  els.t.title.textContent=S.title; els.t.choose.textContent=S.choose; els.t.orderNow.textContent=S.orderNow;
+  els.t.previewTitle.textContent=S.previewTitle; els.t.name.textContent=S.name; els.t.phone.textContent=S.phone;
+  els.t.city.textContent=S.city; els.t.notes.textContent=S.notes; els.t.confirm.textContent=S.confirm;
+  els.t.send.textContent=S.send; els.t.preview.textContent=S.preview;
+  els.t.prevName.textContent=S.prevName; els.t.prevPhone.textContent=S.prevPhone; els.t.prevAddr.textContent=S.prevAddr;
+  els.t.prevNotes.textContent=S.prevNotes; els.t.sendNow.textContent=S.sendNow; els.t.download.textContent=S.download;
   if (els.selectedPill) els.selectedPill.textContent = S.selected;
 }
 
@@ -280,9 +230,9 @@ function normalizeILPhone(input){
   return d;
 }
 
-/* WhatsApp text: ONLY customer details (no product name/price) */
+/*** نص واتساب ***/
 function buildText({name,phone,city,notes}){
-  const S=STR[LANG];
+  const S=(STR[LANG]||STR.ar);
   return (
    `🧾 MAD Perfumeur — ${LANG==='he'?'הזמנה חדשה':'طلب جديد'}\n\n`+
    `${S.prevName} ${name}\n`+
@@ -293,30 +243,104 @@ function buildText({name,phone,city,notes}){
   );
 }
 
-async function fetchImageAsFile(url, name="selection.png"){
-  const r=await fetch(url,{mode:"cors"});
-  const b=await r.blob();
-  return new File([b], name, {type:b.type || "image/png"});
+/*** كَانفس: إنشاء صورة فاتورة مدمجة (المنتج + التفاصيل + باركود + لوجو) ***/
+async function makeInvoiceImage(productUrl, data){
+  // إعداد القماش
+  const W = 1080, P = 48; // عرض ثابت 1080px
+  const canvas = document.createElement('canvas'); const ctx = canvas.getContext('2d');
+  // حمّل صورة المنتج
+  const img = await loadImage(productUrl);
+  // ارتفاع ديناميكي: صورة المنتج + بلوك التفاصيل
+  const prodH = Math.round(W * (img.height / img.width));
+  const detailsH = 520;
+  canvas.width = W; canvas.height = prodH + detailsH;
+
+  // خلفية
+  ctx.fillStyle = '#0b0f19'; ctx.fillRect(0,0,canvas.width,canvas.height);
+
+  // صورة المنتج
+  ctx.drawImage(img, 0, 0, W, prodH);
+
+  // لوجو (اختياري)
+  try{
+    const logo = await loadImage('img/logo.png');
+    const sz = 120;
+    ctx.drawImage(logo, P, prodH + P, sz, sz);
+  }catch{}
+
+  // نصوص
+  ctx.fillStyle = '#ffffff';
+  ctx.font = '700 44px system-ui, -apple-system, Segoe UI, Arial';
+  ctx.fillText('MAD Perfumeur', P+140, prodH + P + 64);
+
+  ctx.font = '600 40px system-ui, -apple-system, Segoe UI, Arial';
+  ctx.fillStyle = '#f59e0b';
+  ctx.fillText(LANG==='he'?'אישור הזמנה':'تأكيد الطلب', P, prodH + 180);
+
+  ctx.fillStyle = '#d1d5db';
+  ctx.font = '400 36px system-ui, -apple-system, Segoe UI, Arial';
+  const L = (STR[LANG]||STR.ar);
+  const lines = [
+    `${L.prevName} ${data.name}`,
+    `${L.prevPhone} ${data.phone}`,
+    `${L.prevAddr} ${data.city}`,
+    data.notes ? `${L.prevNotes} ${data.notes}` : null
+  ].filter(Boolean);
+
+  lines.forEach((t,i)=>{ ctx.fillText(t, P, prodH + 240 + i*54); });
+
+  // باركود بسيط (وهمي)
+  const bx = W - P - 380, by = prodH + 60, bw = 340, bh = 140;
+  ctx.fillStyle = '#111827'; roundRect(ctx, bx-20, by-20, bw+40, bh+40, 16); ctx.fill();
+  drawFakeBarcode(ctx, bx, by, bw, bh);
+
+  // ختم تأكيد
+  ctx.save();
+  ctx.translate(W - 220, prodH + 360);
+  ctx.rotate(-0.1);
+  ctx.strokeStyle = '#f59e0b'; ctx.lineWidth = 6; ctx.fillStyle = 'rgba(245,158,11,0.15)';
+  roundRect(ctx, -160, -48, 320, 96, 18); ctx.fill(); ctx.stroke();
+  ctx.fillStyle = '#f59e0b'; ctx.font='700 40px system-ui, -apple-system, Segoe UI, Arial';
+  ctx.textAlign='center'; ctx.fillText(LANG==='he'?'אושר':'تم التأكيد', 0, 14);
+  ctx.restore();
+
+  // ملف
+  const blob = await new Promise(res=>canvas.toBlob(res, 'image/png', 0.95));
+  return new File([blob], 'mad-order.png', {type:'image/png'});
+
+  function loadImage(url){
+    return new Promise((res,rej)=>{ const im=new Image(); im.crossOrigin='anonymous'; im.onload=()=>res(im); im.onerror=rej; im.src=url; });
+  }
+  function roundRect(ctx,x,y,w,h,r){ const rr=Math.min(r,w/2,h/2); ctx.beginPath();
+    ctx.moveTo(x+rr,y); ctx.arcTo(x+w,y,x+w,y+h,rr); ctx.arcTo(x+w,y+h,x,y+h,rr); ctx.arcTo(x,y+h,x,y,rr); ctx.arcTo(x,y,x+w,y,rr); ctx.closePath(); }
+  function drawFakeBarcode(ctx,x,y,w,h){
+    ctx.fillStyle='#e5e7eb'; ctx.fillRect(x,y,w,h);
+    ctx.fillStyle='#111827';
+    let cur=x+10; while(cur<x+w-10){ const barW = Math.floor(2+Math.random()*6); const gap = Math.floor(2+Math.random()*6);
+      ctx.fillRect(cur,y+8,barW,h-16); cur+=barW+gap;
+    }
+    // أرقام تحت
+    ctx.fillStyle='#111827'; ctx.font='600 24px system-ui, -apple-system, Segoe UI, Arial';
+    ctx.textAlign='center'; ctx.fillText('MAD'+Math.floor(100000+Math.random()*899999), x+w/2, y+h+28);
+    ctx.textAlign='start';
+  }
 }
 
-/*** إرسال عبر واتساب (حاول مع صورة، وإلا نزّل الصورة وافتح واتساب) ***/
-function openWhatsApp(text){
+/*** المشاركة / الإرسال ***/
+function openWhatsAppTextOnly(text){
   const urlApp = `whatsapp://send?phone=${WHATSAPP_NUMBER}&text=${encodeURIComponent(text)}`;
   const urlWeb = `https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(text)}`;
-  // جرّب مخطط التطبيق أولاً (على الموبايل)، ثم افتح الويب احتياطًا.
-  try {
-    window.location.href = urlApp;
-    setTimeout(()=>window.open(urlWeb,"_blank"), 700);
-  } catch { window.open(urlWeb,"_blank"); }
+  try { window.location.href = urlApp; setTimeout(()=>window.open(urlWeb,"_blank"), 700); }
+  catch { window.open(urlWeb,"_blank"); }
 }
 
-/*** Render selected + carousel ***/
+/*** Render + Carousel + Select ***/
 let selectedIndex = 0;
 let selected = PRODUCTS[0];
 
 function renderSelected(){
   els.hero.src = selected.img;
-  // تأشير البطاقة المختارة
+  // إبراز
   [...els.carousel.querySelectorAll('.card')].forEach(c=>{
     c.classList.remove('card-selected');
     const b=c.querySelector('.check-badge'); if(b) b.remove();
@@ -324,13 +348,10 @@ function renderSelected(){
   const card = els.carousel.querySelector(`[data-idx="${selectedIndex}"]`);
   if(card){
     card.classList.add('card-selected');
-    const badge = document.createElement('div');
-    badge.className='check-badge';
-    badge.textContent='✓';
+    const badge = document.createElement('div'); badge.className='check-badge'; badge.textContent='✓';
     (card.querySelector('.imgwrap')||card).appendChild(badge);
   }
-  // أظهر الشارة النصية
-  if (els.selectedPill) els.selectedPill.classList.remove('hidden');
+  els.selectedPill?.classList.remove('hidden');
 }
 
 function renderCarousel(){
@@ -345,23 +366,19 @@ function renderCarousel(){
       </div>
     `;
     btn.addEventListener('click', ()=>{
-      selectedIndex = idx;
-      selected = p;
-      renderSelected();
+      selectedIndex = idx; selected = p; renderSelected();
       document.getElementById('app').scrollTo({top:0,behavior:'smooth'});
     });
-    if(idx===0) btn.classList.add("border-amber-500","shadow-lg");
     els.carousel.appendChild(btn);
   });
 }
 
-/*** AUTO CAROUSEL (كما هو) ***/
+/*** AUTO CAROUSEL ***/
 let autoTimer=null, autoIdx=0, autoResume=null;
 function startAutoCarousel(){
   stopAutoCarousel();
   const cont = els.carousel; if(!cont) return;
-  const items = [...cont.children];
-  if(items.length<=2) return;
+  const items = [...cont.children]; if(items.length<=2) return;
   autoIdx = 0;
   autoTimer = setInterval(()=>{
     autoIdx = (autoIdx + 1) % items.length;
@@ -376,11 +393,10 @@ function pauseAuto(){ stopAutoCarousel(); clearTimeout(autoResume); autoResume=s
 });
 document.addEventListener('visibilitychange', ()=>{ if(document.hidden) stopAutoCarousel(); else pauseAuto(); });
 
-/*** Preview + send ***/
+/*** Preview + Send ***/
 function fillPreview(){
   els.prevImg.src = selected.img;
   const norm = normalizeILPhone(els.phone.value);
-  // لا نعرض اسم/سعر المنتج، فقط بيانات الزبون
   prevName.textContent  = els.name.value || '—';
   prevPhone.textContent = norm || '—';
   prevAddr.textContent  = els.city.value || '—';
@@ -394,44 +410,37 @@ async function doSend(){
     alert(LANG==='he'?'יש לאשר את התנאים לפני שליחה':'يرجى تأكيد الموافقة على الشروط قبل الإرسال.');
     return;
   }
-  const norm = normalizeILPhone(els.phone.value);
-  const text = buildText({
-    name: els.name.value,
-    phone: norm,
-    city:  els.city.value,
+  const data = {
+    name: els.name.value.trim(),
+    phone: normalizeILPhone(els.phone.value),
+    city:  els.city.value.trim(),
     notes: (els.notes.value||"").trim()
-  });
+  };
+  const text = buildText(data);
 
-  // حاول المشاركة مع الصورة (مدعوم على بعض متصفحات الموبايل)
+  // 1) جرّب مشاركة الصورة + النص عبر Web Share (أفضل تجربة)
   try{
-    const shareFile = await fetchImageAsFile(selected.img, `selection.png`);
-    const data = shareFile ? { files:[shareFile], text, title:'MAD Order' } : { text, title:'MAD Order' };
-    if(navigator.canShare && navigator.canShare(data)){
-      await navigator.share(data);
+    const file = await makeInvoiceImage(selected.img, data);
+    const shareData = { files:[file], text, title:'MAD Order' };
+    if(navigator.canShare && navigator.canShare(shareData)){
+      await navigator.share(shareData);
       return;
     }
   }catch(e){ /* تجاهل */ }
 
-  // إن لم يُدعَم إرفاق الصورة تلقائيًا:
-  // 1) نزّل الصورة تلقائيًا ليسهل إرفاقها يدويًا
+  // 2) إن لم يُدعَم: نزّل الصورة تلقائياً وافتح محادثة الرقم بالنص الجاهز
   try{
-    const a=document.createElement('a');
-    a.href = selected.img;
-    a.download = 'selection.png';
-    document.body.appendChild(a);
-    a.click();
-    a.remove();
+    const file = await makeInvoiceImage(selected.img, data);
+    const a=document.createElement('a'); a.href=URL.createObjectURL(file); a.download='mad-order.png';
+    document.body.appendChild(a); a.click(); a.remove();
   }catch(e){}
+  openWhatsAppTextOnly(text);
 
-  // 2) افتح واتساب على الرقم المحدد مع النص
-  openWhatsApp(text);
-
-  // 3) أظهر المعاينة مع رابط تنزيل واضح أيضاً
+  // 3) أظهر المعاينة أيضاً
   fillPreview();
   els.downloadPromo.classList.remove('hidden');
   els.downloadPromo.href = selected.img;
-  document.getElementById('modal').classList.remove('hidden');
-  document.getElementById('modal').classList.add('flex');
+  modal.classList.remove('hidden'); modal.classList.add('flex');
 }
 
 /*** About BNG auto-detect ***/
@@ -447,28 +456,27 @@ async function setAboutAuto(){
   const el = document.getElementById('aboutImg');
   const statusEl = document.getElementById('aboutStatus');
 
-  // override via ?about=
   const qs = new URLSearchParams(location.search);
   const aboutQS = qs.get('about');
   if (aboutQS) {
     const direct = 'img/' + decodeURIComponent(aboutQS);
     if (await canLoad(direct)) { el.src = direct; statusEl && (statusEl.textContent = ''); return; }
   }
+  const prim = ['img/About%20BNG.png','img/About%20BNG.jpg','img/About%20BNG.webp'];
+  for (const p of prim) if(await canLoad(p)){ el.src=p; statusEl.textContent=''; return; }
 
-  const bases = ['About BNG','ABOUT BNG','about bng','About_BNG','ABOUT_BNG','about_bng','About-BNG','ABOUT-BNG','about-bng'];
-  const suffixes = ['', ' (1)',' (2)',' (3)',' (final)','_final','-final'];
-  const exts = ['.png','.jpg','.jpeg','.webp','.gif','.PNG','.JPG','.JPEG','.WEBP','.GIF'];
-  const encs = s => [s, s.replace(/\s/g,'%20'), s.replace(/\s/g,'+'), s.replace(/\s/g,'%2520')];
+  const bases=['About BNG','ABOUT BNG','about bng','About_BNG','ABOUT_BNG','about_bng','About-BNG','ABOUT-BNG','about-bng'];
+  const suffix=['',' (1)',' (2)',' (3)',' (final)','_final','-final'];
+  const exts=['.png','.jpg','.jpeg','.webp','.gif','.PNG','.JPG','.JPEG','.WEBP','.GIF'];
+  const encs=s=>[s,s.replace(/\s/g,'%20'),s.replace(/\s/g,'+')];
+  for(const b of bases) for(const s of suffix) for(const e of exts)
+    for(const p of encs(`img/${b}${s}${e}`))
+      if(await canLoad(p)){ el.src=p; statusEl.textContent=''; return; }
 
-  for (const base of bases) for (const suf of suffixes) for (const e of exts)
-    for (const p of encs(`img/${base}${suf}${e}`))
-      if (await canLoad(p)) { el.src = p; statusEl && (statusEl.textContent = ''); return; }
-
-  for (const f of ['about','About','ABOUT']) for (const e of exts) {
-    const p = `img/${f}${e}`;
-    if (await canLoad(p)) { el.src = p; statusEl && (statusEl.textContent = ''); return; }
+  for(const f of ['about','About','ABOUT']) for(const e of exts){
+    const p=`img/${f}${e}`; if(await canLoad(p)){ el.src=p; statusEl.textContent=''; return; }
   }
-  if (statusEl) statusEl.textContent = LANG==='he' ? 'לא נמצאה תמונת About BNG בתיקיית img' : 'لم يتم العثور على صورة About BNG داخل مجلد img';
+  statusEl.textContent = LANG==='he' ? 'לא נמצאה תמונת About BNG בתיקיית img' : 'لم يتم العثور على صورة About BNG داخل مجلد img';
 }
 
 /*** Events ***/
@@ -486,7 +494,7 @@ els.ctaTop.onclick = (e)=>{ e.preventDefault(); document.getElementById('orderFo
   if(wa) WHATSAPP_NUMBER = wa;
   els.callWa.href = "https://wa.me/"+WHATSAPP_NUMBER;
 
-  // لغة + نص الزر
+  // لغة + نصوص
   LANG = detectLang(); i18n();
 
   // رندر
