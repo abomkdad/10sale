@@ -11,9 +11,6 @@
     .no-scrollbar{-ms-overflow-style:none;scrollbar-width:none}
     .full-bleed{width:100vw;max-width:100vw;margin-left:calc(50% - 50vw);margin-right:calc(50% - 50vw)}
     img{-webkit-user-drag:none;user-select:none;display:block}
-    /* تمييز الاختيار */
-    .card-selected{border-color:rgb(245 158 11)!important; box-shadow:0 0 0 2px rgb(245 158 11 / 0.35)}
-    .check-badge{position:absolute; top:.4rem; inset-inline-end:.4rem; background:rgb(245 158 11); color:#111827; font-weight:700; font-size:.7rem; padding:.15rem .4rem; border-radius:.5rem}
   </style>
 </head>
 <body class="min-h-screen overflow-x-hidden">
@@ -31,25 +28,24 @@
       </div>
     </header>
 
-    <!-- SELECTED IMAGE (HERO) -->
+    <!-- SELECTED IMAGE (HERO) — بدون نسبة مربعة، عرض كامل وارتفاع تلقائي -->
     <section class="mt-3">
       <div class="rounded-2xl overflow-hidden border border-slate-800 bg-slate-900">
         <img id="heroImg" src="img/p1.png" alt="المنتج المختار" class="w-full h-auto">
       </div>
-      <!-- شارة نصيّة توضح أنه تم اختيار منتج -->
-      <div id="selectedPill" class="mt-2 hidden text-[12px] text-emerald-300">✓ تم اختيار هذا المنتج</div>
     </section>
 
-    <!-- CAROUSEL -->
+    <!-- CAROUSEL (images only, no forced aspect) -->
     <section class="mt-3">
       <div id="carousel" class="flex gap-3 overflow-x-auto snap-x snap-mandatory no-scrollbar px-1 pb-1"></div>
       <p id="t_choose" class="text-center text-[12px] text-slate-400 mt-1">اختر المجموعة</p>
     </section>
 
-    <!-- ORDER CARD -->
+    <!-- ORDER CARD (no product name/price/options) -->
     <section class="mt-2">
       <div class="rounded-2xl border border-slate-800 bg-slate-900/60">
         <form id="orderForm" class="p-3 space-y-3">
+          <!-- Fields (NO placeholders) -->
           <div>
             <label id="t_name" class="text-[11px] text-slate-400">الاسم الكامل</label>
             <input id="name" required class="mt-1 w-full rounded-xl bg-slate-800 border border-slate-700 p-2 text-sm"/>
@@ -84,7 +80,7 @@
       </div>
     </section>
 
-    <!-- ABOUT -->
+    <!-- ABOUT LONG IMAGE (auto-detect “About BNG.*”) -->
     <section class="mt-4">
       <img id="aboutImg" src="" alt="About / על החברה" class="full-bleed block h-auto" loading="lazy" decoding="async">
       <p id="aboutStatus" class="text-center text-[12px] text-red-300 mt-1"></p>
@@ -98,7 +94,7 @@
     </div>
   </div>
 
-  <!-- PREVIEW MODAL -->
+  <!-- PREVIEW MODAL (send from here too) -->
   <div id="modal" class="hidden fixed inset-0 z-50 bg-black/70 items-center justify-center p-3">
     <div class="w-full max-w-sm rounded-2xl bg-slate-900 border border-slate-800 overflow-hidden">
       <div class="flex items-center justify-between p-3 border-b border-slate-800">
@@ -107,6 +103,7 @@
       </div>
       <div class="p-3 space-y-3">
         <div class="rounded-2xl overflow-hidden border border-slate-800">
+          <!-- بدون نسبة مفروضة في المعاينة أيضاً -->
           <img id="prevImg" src="img/p1.png" class="w-full h-auto">
         </div>
         <div class="text-xs text-slate-200 space-y-1">
@@ -148,7 +145,6 @@ const STR = {
   ar: {
     title:"عطور مختارة – اطلب الآن عبر واتساب",
     choose:"اختر المجموعة",
-    selected:"✓ تم اختيار هذا المنتج",
     name:"الاسم الكامل",
     phone:"رقم الهاتف",
     city:"المدينة / العنوان",
@@ -168,7 +164,6 @@ const STR = {
   he: {
     title:"בשמים נבחרים – הזמנה בווטסאפ",
     choose:"בחרו קבוצה",
-    selected:"✓ המוצר נבחר",
     name:"שם מלא",
     phone:"מספר טלפון",
     city:"עיר / כתובת",
@@ -201,7 +196,6 @@ let LANG = detectLang();
 const els = {
   callWa:document.getElementById('callWa'),
   hero:document.getElementById('heroImg'),
-  selectedPill:document.getElementById('selectedPill'),
   carousel:document.getElementById('carousel'),
   name:document.getElementById('name'),
   phone:document.getElementById('phone'),
@@ -264,9 +258,6 @@ function i18n(){
   els.t.prevNotes.textContent=S.prevNotes;
   els.t.sendNow.textContent=S.sendNow;
   els.t.download.textContent=S.download;
-  // نص الشارة
-  const pill = document.getElementById('selectedPill');
-  if(pill) pill.textContent = S.selected;
 }
 
 function normalizeILPhone(input){
@@ -308,50 +299,31 @@ async function fetchImageAsFile(url, name="promo.png"){
 }
 
 /*** Render selected + carousel ***/
-let selectedIndex = 0;
 let selected = PRODUCTS[0];
-function renderSelected(){
-  els.hero.src = selected.img;
-  // تأشير البطاقة المختارة
-  [...els.carousel.querySelectorAll('.card')].forEach(c=>{
-    c.classList.remove('card-selected');
-    const b=c.querySelector('.check-badge'); if(b) b.remove();
-  });
-  const card = els.carousel.querySelector(`[data-idx="${selectedIndex}"]`);
-  if(card){
-    card.classList.add('card-selected');
-    const badge = document.createElement('div');
-    badge.className='check-badge';
-    badge.textContent='✓';
-    (card.querySelector('.imgwrap')||card).appendChild(badge);
-  }
-  // إظهار الشارة النصية
-  const pill = document.getElementById('selectedPill');
-  if(pill) pill.classList.remove('hidden');
-}
+function renderSelected(){ els.hero.src = selected.img; }
 
 function renderCarousel(){
   els.carousel.innerHTML="";
   PRODUCTS.forEach((p,idx)=>{
     const btn=document.createElement('button');
-    btn.className="card snap-start shrink-0 w-40 rounded-2xl p-2 bg-slate-900 border transition border-slate-800";
-    btn.setAttribute('data-idx', idx);
+    btn.className="snap-start shrink-0 w-40 rounded-2xl p-2 bg-slate-900 border transition border-slate-800";
     btn.innerHTML = `
-      <div class="imgwrap relative overflow-hidden rounded-xl bg-slate-800">
+      <div class="relative overflow-hidden rounded-xl bg-slate-800">
+        <!-- إزالة aspect-square + استخدام h-auto -->
         <img src="${p.img}" alt="" class="w-full h-auto">
       </div>
     `;
     btn.addEventListener('click', ()=>{
-      selectedIndex = idx;
       selected = p;
       renderSelected();
       document.getElementById('app').scrollTo({top:0,behavior:'smooth'});
     });
+    if(idx===0) btn.classList.add("border-amber-500","shadow-lg");
     els.carousel.appendChild(btn);
   });
 }
 
-/*** AUTO CAROUSEL: تحريك تلقائي كل ثانية ***/
+/*** AUTO CAROUSEL: تحريك تلقائي كل ثانية (فقط) ***/
 let autoTimer=null, autoIdx=0, autoResume=null;
 function startAutoCarousel(){
   stopAutoCarousel();
@@ -374,7 +346,7 @@ document.addEventListener('visibilitychange', ()=>{ if(document.hidden) stopAuto
 
 /*** Preview + send (promo image attach) ***/
 function fillPreview(){
-  els.prevImg.src = selected.img;
+  els.prevImg.src = selected.img; // بدون قيود أبعاد
   const norm = normalizeILPhone(els.phone.value);
   els.prevName.textContent  = els.name.value || '—';
   els.prevPhone.textContent = norm || '—';
@@ -398,6 +370,7 @@ async function doSend(){
     notes: (els.notes.value||"").trim()
   });
 
+  // Attach selected image if possible
   let shareFile=null;
   try{ shareFile = await fetchImageAsFile(selected.img, `selection.png`); }catch(e){}
 
@@ -409,6 +382,7 @@ async function doSend(){
     }
   }catch(e){}
 
+  // Fallback: open WhatsApp with text only and show preview to download image manually
   window.open(`https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(text)}`,"_blank");
   fillPreview();
   els.downloadPromo.classList.remove('hidden');
@@ -416,7 +390,7 @@ async function doSend(){
   els.modal.classList.remove('hidden'); els.modal.classList.add('flex');
 }
 
-/*** About BNG auto-detect ***/
+/*** About BNG auto-detect (any ext/case/spacing) ***/
 function canLoad(src){
   return new Promise(res=>{
     const im=new Image();
@@ -472,18 +446,18 @@ els.ctaTop.onclick = (e)=>{ e.preventDefault(); document.getElementById('orderFo
   // WA override via ?wa=
   const qs = new URLSearchParams(location.search);
   const wa = (qs.get('wa')||'').replace(/\D+/g,'');
-  if(wa) 972506164130 = wa;
-  els.callWa.href = "https://wa.me/"+972506164130;
+  if(wa) WHATSAPP_NUMBER = wa;
+  els.callWa.href = "https://wa.me/"+WHATSAPP_NUMBER;
 
   // Language
   LANG = detectLang(); i18n();
 
   // Render
   renderCarousel();
-  selectedIndex = 0; selected = PRODUCTS[selectedIndex];
+  selected = PRODUCTS[0];
   renderSelected();
 
-  // Auto carousel
+  // Auto carousel (إضافة الوحيدة)
   startAutoCarousel();
 
   // About BNG auto
