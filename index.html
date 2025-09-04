@@ -11,6 +11,8 @@
     .no-scrollbar{-ms-overflow-style:none;scrollbar-width:none}
     .full-bleed{width:100vw;max-width:100vw;margin-left:calc(50% - 50vw);margin-right:calc(50% - 50vw)}
     img{-webkit-user-drag:none;user-select:none;display:block}
+    .card-selected{border-color:rgb(245 158 11); box-shadow:0 0 0 2px rgb(245 158 11 / 0.35)}
+    .check-badge{position:absolute; top:.4rem; inset-inline-end:.4rem; background:rgb(245 158 11); color:#111827; font-weight:700; font-size:.7rem; padding:.15rem .4rem; border-radius:.5rem}
   </style>
 </head>
 <body class="min-h-screen overflow-x-hidden">
@@ -28,24 +30,24 @@
       </div>
     </header>
 
-    <!-- SELECTED IMAGE (HERO) — بدون نسبة مربعة، عرض كامل وارتفاع تلقائي -->
+    <!-- HERO (الصورة المختارة) بدون نسبة مفروضة -->
     <section class="mt-3">
       <div class="rounded-2xl overflow-hidden border border-slate-800 bg-slate-900">
         <img id="heroImg" src="img/p1.png" alt="المنتج المختار" class="w-full h-auto">
       </div>
+      <div id="selectedPill" class="mt-2 hidden text-[12px] text-emerald-300">✓ تم اختيار مجموعة</div>
     </section>
 
-    <!-- CAROUSEL (images only, no forced aspect) -->
+    <!-- CAROUSEL -->
     <section class="mt-3">
       <div id="carousel" class="flex gap-3 overflow-x-auto snap-x snap-mandatory no-scrollbar px-1 pb-1"></div>
-      <p id="t_choose" class="text-center text-[12px] text-slate-400 mt-1">اختر المجموعة</p>
+      <p id="t_choose" class="text-center text-[12px] text-slate-400 mt-2">اختر المجموعة</p>
     </section>
 
-    <!-- ORDER CARD (no product name/price/options) -->
+    <!-- ORDER CARD (حقول فقط) -->
     <section class="mt-2">
       <div class="rounded-2xl border border-slate-800 bg-slate-900/60">
         <form id="orderForm" class="p-3 space-y-3">
-          <!-- Fields (NO placeholders) -->
           <div>
             <label id="t_name" class="text-[11px] text-slate-400">الاسم الكامل</label>
             <input id="name" required class="mt-1 w-full rounded-xl bg-slate-800 border border-slate-700 p-2 text-sm"/>
@@ -55,7 +57,7 @@
             <input id="phone" required class="mt-1 w-full rounded-xl bg-slate-800 border border-slate-700 p-2 text-sm"/>
           </div>
           <div>
-            <label id="t_city" class="text-[11px] text-slate-400">المدينة / العنوان</label>
+            <label id="t_city" class="text-[11px] text-slate-400">البلد / العنوان</label>
             <input id="city" required class="mt-1 w-full rounded-xl bg-slate-800 border border-slate-700 p-2 text-sm"/>
           </div>
           <div>
@@ -94,7 +96,7 @@
     </div>
   </div>
 
-  <!-- PREVIEW MODAL (send from here too) -->
+  <!-- PREVIEW MODAL -->
   <div id="modal" class="hidden fixed inset-0 z-50 bg-black/70 items-center justify-center p-3">
     <div class="w-full max-w-sm rounded-2xl bg-slate-900 border border-slate-800 overflow-hidden">
       <div class="flex items-center justify-between p-3 border-b border-slate-800">
@@ -103,7 +105,6 @@
       </div>
       <div class="p-3 space-y-3">
         <div class="rounded-2xl overflow-hidden border border-slate-800">
-          <!-- بدون نسبة مفروضة في المعاينة أيضاً -->
           <img id="prevImg" src="img/p1.png" class="w-full h-auto">
         </div>
         <div class="text-xs text-slate-200 space-y-1">
@@ -126,7 +127,7 @@
 
 <script>
 /*** CONFIG ***/
-let WHATSAPP_NUMBER = "972525105889"; // يمكن تغييره من الرابط ?wa=
+let WHATSAPP_NUMBER = "972525105889"; // غيّره عند الحاجة (بدون +)
 const PRODUCTS = [
   { id:"Q106", name:"باقة 3 عطور – كلاسيك", img:"img/p1.png" },
   { id:"Q110", name:"باقة 5 عطور – جولد",   img:"img/p2.png" },
@@ -145,9 +146,10 @@ const STR = {
   ar: {
     title:"عطور مختارة – اطلب الآن عبر واتساب",
     choose:"اختر المجموعة",
+    selected:"✓ تم اختيار مجموعة",
     name:"الاسم الكامل",
     phone:"رقم الهاتف",
-    city:"المدينة / العنوان",
+    city:"البلد / العنوان",
     notes:"ملاحظات (اختياري)",
     confirm:"أؤكد أن هذا النموذج خاص بالطلب فقط وليس للاستفسارات، وأوافق على إتمام الطلب وفق التفاصيل.",
     send:"إرسال الطلب عبر واتساب",
@@ -164,6 +166,7 @@ const STR = {
   he: {
     title:"בשמים נבחרים – הזמנה בווטסאפ",
     choose:"בחרו קבוצה",
+    selected:"✓ נבחרה חבילה",
     name:"שם מלא",
     phone:"מספר טלפון",
     city:"עיר / כתובת",
@@ -190,12 +193,13 @@ function detectLang(){
   if(/^ar\b/i.test(nav)) return 'ar';
   return 'ar';
 }
-let LANG = detectLang();
+let LANG = 'ar';
 
 /*** Helpers ***/
 const els = {
   callWa:document.getElementById('callWa'),
   hero:document.getElementById('heroImg'),
+  selectedPill:document.getElementById('selectedPill'),
   carousel:document.getElementById('carousel'),
   name:document.getElementById('name'),
   phone:document.getElementById('phone'),
@@ -215,10 +219,12 @@ const els = {
   prevNotes:document.getElementById('prevNotes'),
   sendFromPreview:document.getElementById('sendFromPreview'),
   downloadPromo:document.getElementById('downloadPromo'),
-  // i18n labels:
+  // labels
   t:{
     title:document.getElementById('t_title'),
     choose:document.getElementById('t_choose'),
+    orderNow:document.getElementById('t_orderNow'),
+    previewTitle:document.getElementById('t_previewTitle'),
     name:document.getElementById('t_name'),
     phone:document.getElementById('t_phone'),
     city:document.getElementById('t_city'),
@@ -226,8 +232,6 @@ const els = {
     confirm:document.getElementById('t_confirm'),
     send:document.getElementById('t_send'),
     preview:document.getElementById('t_preview'),
-    orderNow:document.getElementById('t_orderNow'),
-    previewTitle:document.getElementById('t_previewTitle'),
     prevName:document.getElementById('t_prevName'),
     prevPhone:document.getElementById('t_prevPhone'),
     prevAddr:document.getElementById('t_prevAddr'),
@@ -243,6 +247,8 @@ function i18n(){
   document.documentElement.dir  = 'rtl';
   els.t.title.textContent=S.title;
   els.t.choose.textContent=S.choose;
+  els.t.orderNow.textContent=S.orderNow;
+  els.t.previewTitle.textContent=S.previewTitle;
   els.t.name.textContent=S.name;
   els.t.phone.textContent=S.phone;
   els.t.city.textContent=S.city;
@@ -250,14 +256,13 @@ function i18n(){
   els.t.confirm.textContent=S.confirm;
   els.t.send.textContent=S.send;
   els.t.preview.textContent=S.preview;
-  els.t.orderNow.textContent=S.orderNow;
-  els.t.previewTitle.textContent=S.previewTitle;
   els.t.prevName.textContent=S.prevName;
   els.t.prevPhone.textContent=S.prevPhone;
   els.t.prevAddr.textContent=S.prevAddr;
   els.t.prevNotes.textContent=S.prevNotes;
   els.t.sendNow.textContent=S.sendNow;
   els.t.download.textContent=S.download;
+  els.selectedPill && (els.selectedPill.textContent = S.selected);
 }
 
 function normalizeILPhone(input){
@@ -271,15 +276,8 @@ function normalizeILPhone(input){
   if(d.startsWith("5")) return "0"+d;
   return d;
 }
-function toIntlNoPlus(local05){
-  const d=(local05||"").replace(/\D+/g,"");
-  if(!d) return "";
-  if(d.startsWith("972")) return d;
-  const with0=d.startsWith("0")?d.slice(1):d;
-  return "972"+with0;
-}
 
-/* WhatsApp text: ONLY customer details (no product name/price) */
+/* WhatsApp text: ONLY customer details */
 function buildText({name,phone,city,notes}){
   const S=STR[LANG];
   return (
@@ -292,40 +290,65 @@ function buildText({name,phone,city,notes}){
   );
 }
 
-async function fetchImageAsFile(url, name="promo.png"){
+async function fetchImageAsFile(url, name="selection.png"){
   const r=await fetch(url,{mode:"cors"});
   const b=await r.blob();
   return new File([b], name, {type:b.type || "image/png"});
 }
 
-/*** Render selected + carousel ***/
-let selected = PRODUCTS[0];
-function renderSelected(){ els.hero.src = selected.img; }
+/*** STATE + RENDER ***/
+let selectedIndex = 0;
+let selected = PRODUCTS[selectedIndex];
+
+function markSelectedCard(){
+  // إزالة التحديد القديم
+  [...els.carousel.querySelectorAll('.card')].forEach(c=>{
+    c.classList.remove('card-selected');
+    const b = c.querySelector('.check-badge'); if(b) b.remove();
+  });
+  // تحديد الجديد
+  const card = els.carousel.querySelector(`[data-idx="${selectedIndex}"]`);
+  if(card){
+    card.classList.add('card-selected');
+    const badge = document.createElement('div');
+    badge.className='check-badge';
+    badge.textContent='✓';
+    card.querySelector('.imgwrap').appendChild(badge);
+  }
+  els.selectedPill.classList.remove('hidden');
+}
+
+function renderSelected(){
+  els.hero.src = selected.img;
+  markSelectedCard();
+}
 
 function renderCarousel(){
   els.carousel.innerHTML="";
   PRODUCTS.forEach((p,idx)=>{
     const btn=document.createElement('button');
-    btn.className="snap-start shrink-0 w-40 rounded-2xl p-2 bg-slate-900 border transition border-slate-800";
+    btn.type='button';
+    btn.setAttribute('data-idx', idx);
+    btn.className="card snap-start shrink-0 w-44 rounded-2xl p-2 bg-slate-900 border border-slate-800";
     btn.innerHTML = `
-      <div class="relative overflow-hidden rounded-xl bg-slate-800">
-        <!-- إزالة aspect-square + استخدام h-auto -->
+      <div class="imgwrap relative overflow-hidden rounded-xl bg-slate-800">
         <img src="${p.img}" alt="" class="w-full h-auto">
       </div>
     `;
     btn.addEventListener('click', ()=>{
-      selected = p;
+      selectedIndex = idx;
+      selected = PRODUCTS[selectedIndex];
       renderSelected();
+      // مرّر للأعلى على صورة الهيرو ليشوف اختياره مباشرة
       document.getElementById('app').scrollTo({top:0,behavior:'smooth'});
     });
-    if(idx===0) btn.classList.add("border-amber-500","shadow-lg");
     els.carousel.appendChild(btn);
   });
 }
 
-/*** Preview + send (promo image attach) ***/
+/*** PREVIEW + SEND ***/
 function fillPreview(){
-  els.prevImg.src = selected.img; // بدون قيود أبعاد
+  els.prevImg.src = selected.img;
   const norm = normalizeILPhone(els.phone.value);
   els.prevName.textContent  = els.name.value || '—';
   els.prevPhone.textContent = norm || '—';
@@ -341,7 +364,6 @@ async function doSend(){
     return;
   }
   const norm = normalizeILPhone(els.phone.value);
-
   const text = buildText({
     name: els.name.value,
     phone: norm,
@@ -349,9 +371,8 @@ async function doSend(){
     notes: (els.notes.value||"").trim()
   });
 
-  // Attach selected image if possible
   let shareFile=null;
-  try{ shareFile = await fetchImageAsFile(selected.img, `selection.png`); }catch(e){}
+  try{ shareFile = await fetchImageAsFile(selected.img); }catch(e){}
 
   try{
     const data = shareFile ? { files:[shareFile], text, title:'MAD Order' } : { text, title:'MAD Order' };
@@ -361,7 +382,6 @@ async function doSend(){
     }
   }catch(e){}
 
-  // Fallback: open WhatsApp with text only and show preview to download image manually
   window.open(`https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(text)}`,"_blank");
   fillPreview();
   els.downloadPromo.classList.remove('hidden');
@@ -369,7 +389,7 @@ async function doSend(){
   els.modal.classList.remove('hidden'); els.modal.classList.add('flex');
 }
 
-/*** About BNG auto-detect (any ext/case/spacing) ***/
+/*** About BNG auto-detect ***/
 function canLoad(src){
   return new Promise(res=>{
     const im=new Image();
@@ -382,38 +402,43 @@ async function setAboutAuto(){
   const el = document.getElementById('aboutImg');
   const statusEl = document.getElementById('aboutStatus');
 
-  // override via ?about=
+  // ?about=FileName.ext override
   const qs = new URLSearchParams(location.search);
   const aboutQS = qs.get('about');
   if (aboutQS) {
     const direct = 'img/' + decodeURIComponent(aboutQS);
-    if (await canLoad(direct)) { el.src = direct; statusEl && (statusEl.textContent = ''); return; }
+    if (await canLoad(direct)) { el.src = direct; statusEl.textContent=''; return; }
   }
+
+  // ابدأ بأبسط اسم مباشر
+  const primary = 'img/About%20BNG.png';
+  if (await canLoad(primary)) { el.src = primary; statusEl.textContent=''; return; }
 
   const bases = ['About BNG','ABOUT BNG','about bng','About_BNG','ABOUT_BNG','about_bng','About-BNG','ABOUT-BNG','about-bng'];
   const suffixes = ['', ' (1)',' (2)',' (3)',' (final)','_final','-final'];
   const exts = ['.png','.jpg','.jpeg','.webp','.gif','.PNG','.JPG','.JPEG','.WEBP','.GIF'];
-  const encs = s => [s, s.replace(/\s/g,'%20'), s.replace(/\s/g,'+'), s.replace(/\s/g,'%2520')];
+  const encs = s => [s, s.replace(/\s/g,'%20'), s.replace(/\s/g,'+')];
 
   for (const base of bases) {
     for (const suf of suffixes) {
       for (const e of exts) {
         for (const p of encs(`img/${base}${suf}${e}`)) {
-          if (await canLoad(p)) { el.src = p; statusEl && (statusEl.textContent = ''); return; }
+          if (await canLoad(p)) { el.src = p; statusEl.textContent=''; return; }
         }
       }
     }
   }
+  // fallbacks بسيطة
   for (const f of ['about','About','ABOUT']) {
     for (const e of exts) {
       const p = `img/${f}${e}`;
-      if (await canLoad(p)) { el.src = p; statusEl && (statusEl.textContent = ''); return; }
+      if (await canLoad(p)) { el.src = p; statusEl.textContent=''; return; }
     }
   }
-  if (statusEl) statusEl.textContent = LANG==='he' ? 'לא נמצאה תמונת About BNG בתיקיית img' : 'لم يتم العثور على صورة About BNG داخل مجلد img';
+  statusEl.textContent = LANG==='he' ? 'לא נמצאה תמונת About BNG בתיקיית img' : 'لم يتم العثور على صورة About BNG داخل مجلد img';
 }
 
-/*** Events ***/
+/*** EVENTS ***/
 document.getElementById('previewBtn').onclick = ()=>{ fillPreview(); els.modal.classList.remove('hidden'); els.modal.classList.add('flex'); };
 document.getElementById('closeModal').onclick = ()=>{ els.modal.classList.add('hidden'); els.modal.classList.remove('flex'); };
 document.getElementById('sendFromPreview').onclick = doSend;
@@ -422,22 +447,26 @@ els.ctaTop.onclick = (e)=>{ e.preventDefault(); document.getElementById('orderFo
 
 /*** INIT ***/
 (function init() {
-  // WA override via ?wa=
-  const qs = new URLSearchParams(location.search);
-  const wa = (qs.get('wa')||'').replace(/\D+/g,'');
-  if(wa) 972506164130 = wa;
-  els.callWa.href = "https://wa.me/"+972506164130;
+  try{
+    // لغة
+    LANG = detectLang(); i18n();
 
-  // Language
-  LANG = detectLang(); i18n();
+    // رقم واتساب من ?wa=
+    const qs = new URLSearchParams(location.search);
+    const wa = (qs.get('wa')||'').replace(/\D+/g,'');
+    if(wa) WHATSAPP_NUMBER = wa;
+    els.callWa.href = "https://wa.me/"+WHATSAPP_NUMBER;
 
-  // Render
-  renderCarousel();
-  selected = PRODUCTS[0];
-  renderSelected();
+    // كرسول + اختيار أولي
+    renderCarousel();
+    selectedIndex = 0; selected = PRODUCTS[selectedIndex];
+    renderSelected();
 
-  // About BNG auto
-  setAboutAuto();
+    // صورة About BNG
+    setAboutAuto();
+  }catch(err){
+    console.error('INIT ERROR:', err);
+  }
 })();
 </script>
 </body>
