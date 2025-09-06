@@ -5,13 +5,11 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>تأكيد الطلب</title>
 
-  <!-- وسوم OG لعرض الصورة في Link Preview (تعمل مع الصورة p.qpng الموجودة بجانب الملف) -->
+  <!-- وسوم معاينة لتساعد واتساب على عرض الصورة عند إرسال رابط الصفحة -->
   <meta property="og:title" content="تأكيد طلب المجموعة" />
   <meta property="og:description" content="طلب مؤكد من صفحة العرض." />
   <meta property="og:type" content="website" />
   <meta property="og:image" content="p.qpng" />
-  <meta name="twitter:card" content="summary_large_image" />
-  <meta name="twitter:image" content="p.qpng" />
 
   <style>
     :root { color-scheme: light dark; }
@@ -20,97 +18,90 @@
     .campaign { text-align:center; margin-bottom:12px; }
     .campaign img { max-width:100%; display:block; border-radius:12px; margin:0 auto; }
     .fields { display:grid; gap:10px; }
-    .fields input, .cta {
+    .fields input, .fields button {
       padding:12px; font-size:16px; border-radius:8px; box-sizing:border-box; width:100%;
     }
     .fields input { border:1px solid #ccc; }
-    .cta {
-      display:inline-block; text-align:center; background:#16a34a; color:#fff;
-      font-weight:700; text-decoration:none; border:none; cursor:pointer;
+    .fields button {
+      background:#16a34a; color:#fff; font-weight:700; border:none; cursor:pointer;
     }
-    .cta[aria-disabled="true"] { opacity:.55; pointer-events:none; }
   </style>
 </head>
 <body>
   <div class="wrap">
-    <!-- الصورة التي ستظهر في معاينة واتساب -->
+    <!-- الصورة (ضع ملف p.qpng بجانب هذا الملف) -->
     <div class="campaign">
-      <img id="campaignImg" src="p.qpng" alt="campaign" />
+      <img id="campaignImg" src="p.qpng" alt="campaign">
     </div>
 
-    <!-- الاسم + المدينة + زر واتساب -->
-    <div class="fields">
-      <input type="text" id="cust-name" placeholder="الاسم" required />
-      <input type="text" id="cust-city" placeholder="المدينة" required />
-      <a id="goWA" class="cta" href="#" aria-disabled="true">تأكيد الطلب عبر واتساب</a>
-    </div>
+    <!-- نموذج يوجّه مباشرة إلى واتساب عبر GET (بدون window.open) -->
+    <form id="waForm" class="fields" method="get" action="https://api.whatsapp.com/send">
+      <!-- رقم واتساب ثابت -->
+      <input type="hidden" name="phone" value="972506164130">
+      <!-- نص الرسالة يُملأ تلقائياً -->
+      <input type="hidden" id="waText" name="text" value="">
+
+      <!-- ما يظهر للزبون فقط -->
+      <input type="text" id="custName" placeholder="الاسم" required>
+      <input type="text" id="custCity" placeholder="المدينة" required>
+      <button type="submit">تأكيد الطلب عبر واتساب</button>
+    </form>
   </div>
 
   <script>
-  (function () {
-    var WA_NUMBER = "972506164130";
+    (function () {
+      // دعم لغوي بسيط (اختياري، بدون قوالب نصية)
+      var I18N = {
+        ar: { confirm:"أنا أؤكد طلب هذه المجموعة.", name:"الاسم", city:"المدينة", btn:"تأكيد الطلب عبر واتساب" },
+        he: { confirm:"אני מאשר/ת את הזמנת המארז הזה.", name:"שם", city:"עיר", btn:"אישור הזמנה ב־WhatsApp" },
+        en: { confirm:"I confirm ordering this bundle.", name:"Name", city:"City", btn:"Confirm Order via WhatsApp" }
+      };
+      var lang = (navigator.language && navigator.language.indexOf("he")===0) ? "he"
+                : (navigator.language && navigator.language.indexOf("ar")===0) ? "ar"
+                : "en";
+      var t = I18N[lang];
 
-    // واجهة ثلاث لغات تلقائياً (بدون قوالب نصية)
-    var I18N = {
-      ar: { dir:"rtl", name:"الاسم", city:"المدينة", btn:"تأكيد الطلب عبر واتساب", confirm:"أنا أؤكد طلب هذه المجموعة." },
-      he: { dir:"rtl", name:"שם",   city:"עיר",      btn:"אישור הזמנה ב־WhatsApp",  confirm:"אני מאשר/ת את הזמנת המארז הזה." },
-      en: { dir:"ltr", name:"Name", city:"City",     btn:"Confirm Order via WhatsApp", confirm:"I confirm ordering this bundle." }
-    };
-    var lang = (navigator.language && navigator.language.indexOf("he")===0) ? "he"
-              : (navigator.language && navigator.language.indexOf("ar")===0) ? "ar"
-              : "en";
-    var t = I18N[lang];
-    document.documentElement.lang = lang;
-    document.documentElement.dir  = t.dir;
+      var nameEl = document.getElementById("custName");
+      var cityEl = document.getElementById("custCity");
+      var btnEl  = document.querySelector("button[type=submit]");
 
-    var nameEl = document.getElementById("cust-name");
-    var cityEl = document.getElementById("cust-city");
-    var waBtn  = document.getElementById("goWA");
+      // ترجمات الواجهة
+      nameEl.placeholder = t.name;
+      cityEl.placeholder = t.city;
+      btnEl.textContent  = t.btn;
 
-    // ترجمة العناصر
-    nameEl.placeholder = t.name;
-    cityEl.placeholder = t.city;
-    waBtn.textContent  = t.btn;
+      var waTextEl = document.getElementById("waText");
 
-    function buildMessage(name, city, pageUrl) {
-      // نضع رابط الصفحة ليولّد واتساب Link Preview بالصورة p.qpng
-      return "[" + lang.toUpperCase() + "] " + t.confirm + "\n" +
-             (lang==="ar" ? "الاسم: " : (lang==="he" ? "שם: " : "Name: ")) + name + "\n" +
-             (lang==="ar" ? "المدينة: " : (lang==="he" ? "עיר: " : "City: ")) + city + "\n" +
-             pageUrl;
-    }
-    function buildWaLink(text) {
-      return "https://api.whatsapp.com/send?phone=" + WA_NUMBER + "&text=" + encodeURIComponent(text);
-    }
-    function currentPageUrl() {
-      // رابط نظيف بدون hash لضمان المعاينة
-      var href = (location && location.href) ? location.href : "";
-      var i = href.indexOf("#");
-      return i > -1 ? href.substring(0, i) : href;
-    }
-
-    function updateLink(){
-      var name = (nameEl.value || "").trim();
-      var city = (cityEl.value || "").trim();
-      if (!name || !city) {
-        waBtn.setAttribute("aria-disabled","true");
-        waBtn.href = "#";
-        return;
+      function pageUrlClean() {
+        var href = location.href || "";
+        var i = href.indexOf("#");
+        return (i > -1) ? href.substring(0, i) : href;
       }
-      var text = buildMessage(name, city, currentPageUrl());
-      waBtn.href = buildWaLink(text);
-      waBtn.setAttribute("aria-disabled","false");
-    }
 
-    nameEl.addEventListener("input", updateLink);
-    cityEl.addEventListener("input", updateLink);
-    updateLink();
+      function buildMessage() {
+        var name = (nameEl.value || "").trim();
+        var city = (cityEl.value || "").trim();
+        // نضع رابط الصفحة آخر السطر ليساعد على Link Preview بالصورة p.qpng
+        var lines = [
+          "[" + lang.toUpperCase() + "] " + t.confirm,
+          (lang==="ar" ? "الاسم: " : lang==="he" ? "שם: " : "Name: ") + name,
+          (lang==="ar" ? "المدينة: " : lang==="he" ? "עיר: " : "City: ") + city,
+          pageUrlClean()
+        ];
+        return lines.join("\n");
+      }
 
-    // منع النقر إذا كان معطّلاً
-    waBtn.addEventListener("click", function(e){
-      if (waBtn.getAttribute("aria-disabled")==="true") e.preventDefault();
-    });
-  })();
+      // حدّث النص كلما تغيّر الإدخال
+      function syncText() { waTextEl.value = buildMessage(); }
+      nameEl.addEventListener("input", syncText);
+      cityEl.addEventListener("input", syncText);
+      syncText(); // أولي
+
+      // قبل الإرسال مباشرة (بدون منع التوجيه)
+      document.getElementById("waForm").addEventListener("submit", function () {
+        waTextEl.value = buildMessage(); // تحديث نهائي ثم يوجّه المتصفح مباشرة
+      });
+    })();
   </script>
 </body>
 </html>
