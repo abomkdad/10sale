@@ -1,3 +1,6 @@
+تمام—هذا **HTML كامل** (نسخ-ولصق) يعدّل الرسالة تلقائيًا ليضع **الرابط المطلق لصفحتك** في **السطر الأخير** مع **كسر كاش** (باراميتر `v=`). الزر ينتقل مباشرة لواتساب على **972506164130** باستخدام نموذج GET (أكثر ثباتًا داخل متصفحات التطبيقات). لا تحتاج تغيير أي شيء، فقط ضع الصورة باسم **p.qpng** بجانب الملف.
+
+```html
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
@@ -5,7 +8,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>تأكيد الطلب</title>
 
-  <!-- وسوم معاينة لتساعد واتساب على عرض الصورة عند إرسال رابط الصفحة -->
+  <!-- تساعد واتساب على معاينة الصورة عند فتح رابط الصفحة -->
   <meta property="og:title" content="تأكيد طلب المجموعة" />
   <meta property="og:description" content="طلب مؤكد من صفحة العرض." />
   <meta property="og:type" content="website" />
@@ -29,16 +32,16 @@
 </head>
 <body>
   <div class="wrap">
-    <!-- الصورة (ضع ملف p.qpng بجانب هذا الملف) -->
+    <!-- الصورة (اترك الملف باسم p.qpng في نفس المجلد) -->
     <div class="campaign">
-      <img id="campaignImg" src="p.qpng" alt="campaign">
+      <img src="p.qpng" alt="campaign">
     </div>
 
-    <!-- نموذج يوجّه مباشرة إلى واتساب عبر GET (بدون window.open) -->
+    <!-- نموذج GET مباشر إلى واتساب (لا يستخدم window.open) -->
     <form id="waForm" class="fields" method="get" action="https://api.whatsapp.com/send">
       <!-- رقم واتساب ثابت -->
       <input type="hidden" name="phone" value="972506164130">
-      <!-- نص الرسالة يُملأ تلقائياً -->
+      <!-- نص الرسالة يُملأ تلقائيًا -->
       <input type="hidden" id="waText" name="text" value="">
 
       <!-- ما يظهر للزبون فقط -->
@@ -49,59 +52,68 @@
   </div>
 
   <script>
-    (function () {
-      // دعم لغوي بسيط (اختياري، بدون قوالب نصية)
-      var I18N = {
-        ar: { confirm:"أنا أؤكد طلب هذه المجموعة.", name:"الاسم", city:"المدينة", btn:"تأكيد الطلب عبر واتساب" },
-        he: { confirm:"אני מאשר/ת את הזמנת המארז הזה.", name:"שם", city:"עיר", btn:"אישור הזמנה ב־WhatsApp" },
-        en: { confirm:"I confirm ordering this bundle.", name:"Name", city:"City", btn:"Confirm Order via WhatsApp" }
-      };
-      var lang = (navigator.language && navigator.language.indexOf("he")===0) ? "he"
-                : (navigator.language && navigator.language.indexOf("ar")===0) ? "ar"
-                : "en";
-      var t = I18N[lang];
+  (function(){
+    // ترجمة بسيطة حسب لغة الجهاز
+    var I18N = {
+      ar: { confirm:"أنا أؤكد طلب هذه المجموعة.", name:"الاسم", city:"المدينة", btn:"تأكيد الطلب عبر واتساب" },
+      he: { confirm:"אני מאשר/ת את הזמנת המארז הזה.", name:"שם", city:"עיר", btn:"אישור הזמנה ב־WhatsApp" },
+      en: { confirm:"I confirm ordering this bundle.", name:"Name", city:"City", btn:"Confirm Order via WhatsApp" }
+    };
+    var lang = (navigator.language && navigator.language.indexOf("he")===0) ? "he"
+              : (navigator.language && navigator.language.indexOf("ar")===0) ? "ar"
+              : "en";
+    var t = I18N[lang];
 
-      var nameEl = document.getElementById("custName");
-      var cityEl = document.getElementById("custCity");
-      var btnEl  = document.querySelector("button[type=submit]");
+    // عناصر
+    var nameEl = document.getElementById("custName");
+    var cityEl = document.getElementById("custCity");
+    var btnEl  = document.querySelector("button[type=submit]");
+    var waTextEl = document.getElementById("waText");
 
-      // ترجمات الواجهة
-      nameEl.placeholder = t.name;
-      cityEl.placeholder = t.city;
-      btnEl.textContent  = t.btn;
+    // واجهة مترجمة
+    nameEl.placeholder = t.name;
+    cityEl.placeholder = t.city;
+    btnEl.textContent  = t.btn;
 
-      var waTextEl = document.getElementById("waText");
+    // يبني رابط الصفحة المطلق + كسر كاش v=timestamp
+    function absolutePageUrlWithBuster(){
+      var origin = (location.origin || (location.protocol + "//" + location.host));
+      var path   = location.pathname || "/";
+      var qs     = location.search || "";
+      var base   = origin + path + qs;
+      // إزالة أي hash
+      var hashPos = base.indexOf("#");
+      if (hashPos > -1) base = base.substring(0, hashPos);
+      // أضف v= (يحسن فرص تحديث المعاينة)
+      var sep = (base.indexOf("?") > -1) ? "&" : "?";
+      return base + sep + "v=" + Date.now();
+    }
 
-      function pageUrlClean() {
-        var href = location.href || "";
-        var i = href.indexOf("#");
-        return (i > -1) ? href.substring(0, i) : href;
-      }
+    function buildMessage(){
+      var name = (nameEl.value || "").trim();
+      var city = (cityEl.value || "").trim();
+      // آخر سطر = الرابط المطلق وحده لضمان Link Preview
+      var lines = [
+        "[" + lang.toUpperCase() + "] " + t.confirm,
+        (lang==="ar" ? "الاسم: " : lang==="he" ? "שם: " : "Name: ") + name,
+        (lang==="ar" ? "المدينة: " : lang==="he" ? "עיר: " : "City: ") + city,
+        absolutePageUrlWithBuster()
+      ];
+      return lines.join("\n");
+    }
 
-      function buildMessage() {
-        var name = (nameEl.value || "").trim();
-        var city = (cityEl.value || "").trim();
-        // نضع رابط الصفحة آخر السطر ليساعد على Link Preview بالصورة p.qpng
-        var lines = [
-          "[" + lang.toUpperCase() + "] " + t.confirm,
-          (lang==="ar" ? "الاسم: " : lang==="he" ? "שם: " : "Name: ") + name,
-          (lang==="ar" ? "المدينة: " : lang==="he" ? "עיר: " : "City: ") + city,
-          pageUrlClean()
-        ];
-        return lines.join("\n");
-      }
+    function syncText(){ waTextEl.value = buildMessage(); }
+    nameEl.addEventListener("input", syncText);
+    cityEl.addEventListener("input", syncText);
+    syncText();
 
-      // حدّث النص كلما تغيّر الإدخال
-      function syncText() { waTextEl.value = buildMessage(); }
-      nameEl.addEventListener("input", syncText);
-      cityEl.addEventListener("input", syncText);
-      syncText(); // أولي
-
-      // قبل الإرسال مباشرة (بدون منع التوجيه)
-      document.getElementById("waForm").addEventListener("submit", function () {
-        waTextEl.value = buildMessage(); // تحديث نهائي ثم يوجّه المتصفح مباشرة
-      });
-    })();
+    // تحديث نهائي قبل الإرسال ثم المتصفح ينتقل مباشرة
+    document.getElementById("waForm").addEventListener("submit", function(){
+      waTextEl.value = buildMessage();
+      // لا نمنع الإرسال — يذهب فورًا إلى واتساب
+    });
+  })();
   </script>
 </body>
 </html>
+```
