@@ -4,7 +4,15 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>تأكيد الطلب</title>
+
+  <!-- وسوم OG لعرض الصورة في Link Preview (تعمل مع الصورة p.qpng الموجودة بجانب الملف) -->
+  <meta property="og:title" content="تأكيد طلب المجموعة" />
+  <meta property="og:description" content="طلب مؤكد من صفحة العرض." />
+  <meta property="og:type" content="website" />
   <meta property="og:image" content="p.qpng" />
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:image" content="p.qpng" />
+
   <style>
     :root { color-scheme: light dark; }
     body { margin:16px; font-family: Arial, sans-serif; }
@@ -25,11 +33,12 @@
 </head>
 <body>
   <div class="wrap">
-    <!-- ضع الصورة باسم p.qpng بجانب هذا الملف -->
+    <!-- الصورة التي ستظهر في معاينة واتساب -->
     <div class="campaign">
       <img id="campaignImg" src="p.qpng" alt="campaign" />
     </div>
 
+    <!-- الاسم + المدينة + زر واتساب -->
     <div class="fields">
       <input type="text" id="cust-name" placeholder="الاسم" required />
       <input type="text" id="cust-city" placeholder="المدينة" required />
@@ -39,12 +48,13 @@
 
   <script>
   (function () {
-    var WA_NUMBER = "972506164130"; // <-- الرقم المطلوب
+    var WA_NUMBER = "972506164130";
 
+    // واجهة ثلاث لغات تلقائياً (بدون قوالب نصية)
     var I18N = {
-      ar: { dir:"rtl", name:"الاسم", city:"المدينة", btn:"تأكيد الطلب عبر واتساب", confirm:"أنا أؤكد طلب هذه المجموعة.", imageLabel:"رابط الصورة" },
-      he: { dir:"rtl", name:"שם",   city:"עיר",      btn:"אישור הזמנה ב־WhatsApp",  confirm:"אני מאשר/ת את הזמנת המארז הזה.", imageLabel:"קישור לתמונה" },
-      en: { dir:"ltr", name:"Name", city:"City",     btn:"Confirm Order via WhatsApp", confirm:"I confirm ordering this bundle.", imageLabel:"Image link" }
+      ar: { dir:"rtl", name:"الاسم", city:"المدينة", btn:"تأكيد الطلب عبر واتساب", confirm:"أنا أؤكد طلب هذه المجموعة." },
+      he: { dir:"rtl", name:"שם",   city:"עיר",      btn:"אישור הזמנה ב־WhatsApp",  confirm:"אני מאשר/ת את הזמנת המארז הזה." },
+      en: { dir:"ltr", name:"Name", city:"City",     btn:"Confirm Order via WhatsApp", confirm:"I confirm ordering this bundle." }
     };
     var lang = (navigator.language && navigator.language.indexOf("he")===0) ? "he"
               : (navigator.language && navigator.language.indexOf("ar")===0) ? "ar"
@@ -56,56 +66,27 @@
     var nameEl = document.getElementById("cust-name");
     var cityEl = document.getElementById("cust-city");
     var waBtn  = document.getElementById("goWA");
-    var imgEl  = document.getElementById("campaignImg");
 
+    // ترجمة العناصر
     nameEl.placeholder = t.name;
     cityEl.placeholder = t.city;
     waBtn.textContent  = t.btn;
 
-    function absolutize(u){ try { return new URL(u, location.href).toString(); } catch(e){ return u; } }
-    function buildMessage(name, city, imgUrl) {
-      var lines = [
-        "[" + lang.toUpperCase() + "] " + t.confirm,
-        t.name + ": " + name,
-        t.city + ": " + city
-      ];
-      if (imgUrl) lines.push(t.imageLabel + ": " + imgUrl);
-      return lines.join("\n");
+    function buildMessage(name, city, pageUrl) {
+      // نضع رابط الصفحة ليولّد واتساب Link Preview بالصورة p.qpng
+      return "[" + lang.toUpperCase() + "] " + t.confirm + "\n" +
+             (lang==="ar" ? "الاسم: " : (lang==="he" ? "שם: " : "Name: ")) + name + "\n" +
+             (lang==="ar" ? "المدينة: " : (lang==="he" ? "עיר: " : "City: ")) + city + "\n" +
+             pageUrl;
     }
     function buildWaLink(text) {
       return "https://api.whatsapp.com/send?phone=" + WA_NUMBER + "&text=" + encodeURIComponent(text);
     }
-
-    // إنشاء صورة مصغّرة من p.qpng (إن أمكن) ومشاركتها مع الرسالة
-    function captureThumb(imgEl, maxW) {
-      return new Promise(function(resolve){
-        if (!imgEl) return resolve(null);
-        function work(){
-          var dispW = imgEl.clientWidth || imgEl.naturalWidth || 1;
-          var dispH = imgEl.clientHeight || imgEl.naturalHeight || 1;
-          var scale = Math.min(1, (maxW||700) / dispW);
-          var outW = Math.max(1, Math.round(dispW * scale));
-          var outH = Math.max(1, Math.round(dispH * scale));
-          var ratio = window.devicePixelRatio || 1;
-          var c = document.createElement("canvas");
-          c.width = Math.round(outW * ratio);
-          c.height = Math.round(outH * ratio);
-          var g = c.getContext("2d");
-          try {
-            g.drawImage(imgEl, 0, 0, c.width, c.height);
-            c.toBlob(function(b){ resolve(b || null); }, "image/png", 0.92);
-          } catch(e) { resolve(null); }
-        }
-        if (imgEl.complete && imgEl.naturalWidth) work();
-        else { imgEl.onload = work; imgEl.onerror = function(){ resolve(null); }; }
-      });
-    }
-    function canShareFile(blob){
-      if (!navigator.canShare || !blob) return false;
-      try {
-        var f = new File([blob], "product-thumb.png", { type: blob.type || "image/png" });
-        return navigator.canShare({ files: [f] });
-      } catch(e){ return false; }
+    function currentPageUrl() {
+      // رابط نظيف بدون hash لضمان المعاينة
+      var href = (location && location.href) ? location.href : "";
+      var i = href.indexOf("#");
+      return i > -1 ? href.substring(0, i) : href;
     }
 
     function updateLink(){
@@ -116,31 +97,18 @@
         waBtn.href = "#";
         return;
       }
-      var imgUrl = (imgEl && imgEl.src) ? absolutize(imgEl.src) : "";
-      var text = buildMessage(name, city, imgUrl); // فالباك يتضمن رابط الصورة
+      var text = buildMessage(name, city, currentPageUrl());
       waBtn.href = buildWaLink(text);
       waBtn.setAttribute("aria-disabled","false");
     }
+
     nameEl.addEventListener("input", updateLink);
     cityEl.addEventListener("input", updateLink);
     updateLink();
 
-    waBtn.addEventListener("click", async function(e){
-      if (waBtn.getAttribute("aria-disabled")==="true") { e.preventDefault(); return; }
-      e.preventDefault();
-      var name = (nameEl.value || "").trim();
-      var city = (cityEl.value || "").trim();
-      var blob = await captureThumb(imgEl, 700);
-      if (blob && canShareFile(blob)) {
-        try {
-          var f = new File([blob], "product-thumb.png", { type: "image/png" });
-          var textNoLink = buildMessage(name, city, "");
-          await navigator.share({ files: [f], text: textNoLink });
-          return;
-        } catch(_) {}
-      }
-      // فالباك: افتح واتساب بالرابط الجاهز (يتضمن رابط الصورة)
-      location.href = waBtn.href;
+    // منع النقر إذا كان معطّلاً
+    waBtn.addEventListener("click", function(e){
+      if (waBtn.getAttribute("aria-disabled")==="true") e.preventDefault();
     });
   })();
   </script>
