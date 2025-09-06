@@ -1,39 +1,40 @@
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>تأكيد الطلب</title>
-  <meta property="og:image" content="p.qpng">
+  <meta property="og:image" content="p.qpng" />
   <style>
     :root { color-scheme: light dark; }
-    body { margin: 16px; font-family: Arial, sans-serif; }
-    .wrap { max-width: 430px; margin: 0 auto; }
-    .campaign { text-align:center; margin-bottom: 12px; }
-    .campaign img { max-width: 100%; display:block; border-radius: 12px; margin:0 auto; }
+    body { margin:16px; font-family: Arial, sans-serif; }
+    .wrap { max-width:430px; margin:0 auto; }
+    .campaign { text-align:center; margin-bottom:12px; }
+    .campaign img { max-width:100%; display:block; border-radius:12px; margin:0 auto; }
     .fields { display:grid; gap:10px; }
     .fields input, .cta {
-      padding: 12px; font-size: 16px; border-radius: 8px; box-sizing: border-box; width: 100%;
+      padding:12px; font-size:16px; border-radius:8px; box-sizing:border-box; width:100%;
     }
-    .fields input { border: 1px solid #ccc; }
+    .fields input { border:1px solid #ccc; }
     .cta {
-      display:inline-block; text-align:center; background:#16a34a; color:#fff; font-weight:700; text-decoration:none; border:none; cursor:pointer;
+      display:inline-block; text-align:center; background:#16a34a; color:#fff;
+      font-weight:700; text-decoration:none; border:none; cursor:pointer;
     }
     .cta[aria-disabled="true"] { opacity:.55; pointer-events:none; }
   </style>
 </head>
 <body>
   <div class="wrap">
-    <!-- صورة الحملة (أعدِل الملف p.qpng إلى صورتك بنفس الاسم أو استبدله) -->
+    <!-- صورة المنتج/الحملة التي سنأخذ منها الصورة المصغّرة -->
     <div class="campaign">
-      <img id="campaignImg" src="p.qpng" alt="campaign">
+      <img id="campaignImg" src="p.qpng" alt="campaign" />
     </div>
 
     <!-- حقلا الاسم + المدينة وزر واتساب -->
     <div class="fields">
-      <input type="text" id="cust-name" placeholder="الاسم" required>
-      <input type="text" id="cust-city" placeholder="المدينة" required>
-      <a id="goWA" class="cta" aria-disabled="true" href="#">تأكيد الطلب عبر واتساب</a>
+      <input type="text" id="cust-name" placeholder="الاسم" required />
+      <input type="text" id="cust-city" placeholder="المدينة" required />
+      <a id="goWA" class="cta" href="#" aria-disabled="true">تأكيد الطلب عبر واتساب</a>
     </div>
   </div>
 
@@ -41,33 +42,31 @@
   (function () {
     var WA_NUMBER = "972506164130";
 
-    // لغات الواجهة
+    // لغات الواجهة + نص التأكيد
     var I18N = {
       ar: { dir:"rtl", name:"الاسم", city:"المدينة", btn:"تأكيد الطلب عبر واتساب", confirm:"أنا أؤكد طلب هذه المجموعة.", imageLabel:"رابط الصورة" },
-      he: { dir:"rtl", name:"שם",   city:"עיר",      btn:"אישור הזמנה ב־WhatsApp", confirm:"אני מאשר/ת את הזמנת המארז הזה.", imageLabel:"קישור לתמונה" },
+      he: { dir:"rtl", name:"שם",   city:"עיר",      btn:"אישור הזמנה ב־WhatsApp",  confirm:"אני מאשר/ת את הזמנת המארז הזה.", imageLabel:"קישור לתמונה" },
       en: { dir:"ltr", name:"Name", city:"City",     btn:"Confirm Order via WhatsApp", confirm:"I confirm ordering this bundle.", imageLabel:"Image link" }
     };
     var lang = (navigator.language && navigator.language.indexOf("he")===0) ? "he"
               : (navigator.language && navigator.language.indexOf("ar")===0) ? "ar"
               : "en";
     var t = I18N[lang];
+
     document.documentElement.lang = lang;
     document.documentElement.dir  = t.dir;
 
-    // عناصر
     var nameEl = document.getElementById("cust-name");
     var cityEl = document.getElementById("cust-city");
     var waBtn  = document.getElementById("goWA");
     var imgEl  = document.getElementById("campaignImg");
 
-    // ترجمة واجهة
+    // ترجمات الواجهة
     nameEl.placeholder = t.name;
     cityEl.placeholder = t.city;
     waBtn.textContent  = t.btn;
 
-    function absolutize(url){
-      try { return new URL(url, location.href).toString(); } catch(e){ return url; }
-    }
+    function absolutize(url){ try { return new URL(url, location.href).toString(); } catch(e){ return url; } }
 
     function buildMessage(name, city, imgUrl) {
       var lines = [
@@ -83,27 +82,76 @@
       return "https://api.whatsapp.com/send?phone=" + WA_NUMBER + "&text=" + encodeURIComponent(text);
     }
 
-    function updateLink() {
+    // صورة مصغّرة من الصورة المعروضة فقط
+    function captureThumb(imgEl, maxW) {
+      return new Promise(function(resolve){
+        if (!imgEl) return resolve(null);
+        function work(){
+          var dispW = imgEl.clientWidth || imgEl.naturalWidth || 1;
+          var dispH = imgEl.clientHeight || imgEl.naturalHeight || 1;
+          var scale = Math.min(1, (maxW||700) / dispW);
+          var outW = Math.max(1, Math.round(dispW * scale));
+          var outH = Math.max(1, Math.round(dispH * scale));
+          var ratio = window.devicePixelRatio || 1;
+          var c = document.createElement("canvas");
+          c.width = Math.round(outW * ratio);
+          c.height = Math.round(outH * ratio);
+          var g = c.getContext("2d");
+          try {
+            g.drawImage(imgEl, 0, 0, c.width, c.height);
+            c.toBlob(function(b){ resolve(b || null); }, "image/png", 0.92);
+          } catch(e) { resolve(null); } // CORS ⇒ فالباك
+        }
+        if (imgEl.complete && imgEl.naturalWidth) work();
+        else { imgEl.onload = work; imgEl.onerror = function(){ resolve(null); }; }
+      });
+    }
+
+    function canShareFile(blob){
+      if (!navigator.canShare || !blob) return false;
+      try {
+        var f = new File([blob], "product-thumb.png", { type: blob.type || "image/png" });
+        return navigator.canShare({ files: [f] });
+      } catch(e){ return false; }
+    }
+
+    // نبقي الزر فعّال فقط عند تعبئة الاسم والمدينة + نجهّز رابط فالباك
+    function updateLink(){
       var name = (nameEl.value || "").trim();
       var city = (cityEl.value || "").trim();
       if (!name || !city) {
-        waBtn.setAttribute("aria-disabled", "true");
+        waBtn.setAttribute("aria-disabled","true");
         waBtn.href = "#";
         return;
       }
       var imgUrl = (imgEl && imgEl.src) ? absolutize(imgEl.src) : "";
-      var text = buildMessage(name, city, imgUrl); // يضيف رابط الصورة كدليل
+      var text = buildMessage(name, city, imgUrl); // الفالباك يتضمن رابط الصورة
       waBtn.href = buildWaLink(text);
-      waBtn.setAttribute("aria-disabled", "false");
+      waBtn.setAttribute("aria-disabled","false");
     }
-
     nameEl.addEventListener("input", updateLink);
     cityEl.addEventListener("input", updateLink);
     updateLink();
 
-    // منع النقر إذا كان معطّلاً
-    waBtn.addEventListener("click", function(e){
-      if (waBtn.getAttribute("aria-disabled")==="true") e.preventDefault();
+    // عند الضغط: نحاول مشاركة "صورة مصغّرة + نص"، وإلا ننتقل للرابط الجاهز
+    waBtn.addEventListener("click", async function(e){
+      if (waBtn.getAttribute("aria-disabled")==="true") { e.preventDefault(); return; }
+      e.preventDefault(); // نتحكم بالتصرّف
+      var name = (nameEl.value || "").trim();
+      var city = (cityEl.value || "").trim();
+      var blob = await captureThumb(imgEl, 700);
+      if (blob && canShareFile(blob)) {
+        try {
+          var f = new File([blob], "product-thumb.png", { type: "image/png" });
+          var textNoLink = buildMessage(name, city, ""); // مع الملف ما منضيف رابط
+          await navigator.share({ files: [f], text: textNoLink });
+          return;
+        } catch(eShare) {
+          // المستخدم ألغى أو فشل — نكمل للفالباك
+        }
+      }
+      // فالباك: فتح واتساب بالنص (يتضمن رابط الصورة)
+      location.href = waBtn.href;
     });
   })();
   </script>
