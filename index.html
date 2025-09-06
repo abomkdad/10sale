@@ -1,50 +1,11 @@
-  .fields input,.cta{padding:12px;font-size:16px;border-radius:8px;box-sizing:border-box;width:100%}
-  .fields input{border:1px solid #ccc}
-  .cta{display:inline-block;text-align:center;background:#16a34a;color:#fff;font-weight:700;text-decoration:none;border:none;cursor:pointer}
-  .cta[aria-disabled="true"]{opacity:.55;pointer-events:none}
-</style>
-</head>
-<body>
-  <div class="wrap">
-    <div class="campaign">
-      <img id="img" src="https://madperfume.ps/upload/09-2025/product/68b661a34c273.png" alt="campaign">
-    </div>
-    <div class="fields">
-      <input type="text" id="n" placeholder="الاسم" required>
-      <input type="text" id="c" placeholder="المدينة" required>
-      <a id="go" class="cta" href="#" aria-disabled="true">تأكيد الطلب عبر واتساب</a>
-    </div>
-  </div>
-
-<script>
-(function(){
-  var WA_NUMBER="972506164130";
-
-  var I18N={
-    ar:{dir:"rtl",name:"الاسم",city:"المدينة",btn:"تأكيد الطلب عبر واتساب",confirm:"أنا أؤكد طلب هذه المجموعة."},
-    he:{dir:"rtl",name:"שם",city:"עיר",btn:"אישור הזמנה ב־WhatsApp",confirm:"אני מאשר/ת את הזמנת המארז הזה."},
-    en:{dir:"ltr",name:"Name",city:"City",btn:"Confirm Order via WhatsApp",confirm:"I confirm ordering this bundle."}
-  };
-  var lang=(navigator.language&&navigator.language.indexOf("he")===0)?"he":(navigator.language&&navigator.language.indexOf("ar")===0)?"ar":"en";
-  var t=I18N[lang];
-  document.documentElement.lang=lang; document.documentElement.dir=t.dir;
-
-  var n=document.getElementById("n");
-  var c=document.getElementById("c");
-  var a=document.getElementById("go");
-
-  // ترجمات الواجهة
-  n.placeholder=t.name; c.placeholder=t.city; a.textContent=t.btn;
 
   function absolutePageUrl(){
     try{
       var href=top.location.href||location.href;
       var i=href.indexOf("#"); if(i>-1) href=href.substring(0,i);
       var s=href.indexOf("?")>-1?"&":"?";
-      return href+s+"v="+Date.now(); // كسر كاش للمعاينة
-    }catch(e){
-      return location.href;
-    }
+      return href+s+"v="+Date.now();
+    }catch(e){ return location.href; }
   }
 
   function buildMsg(){
@@ -54,7 +15,71 @@
       "["+lang.toUpperCase()+"] "+t.confirm,
       (lang==="ar"?"الاسم: ":(lang==="he"?"שם: ":"Name: "))+name,
       (lang==="ar"?"المدينة: ":(lang==="he"?"עיר: ":"City: "))+city,
-      absolutePageUrl() // رابط الصفحة لتحفيز Link Preview بالصورة الخارجية
+      absolutePageUrl()
     ];
     return lines.join("\\n");
   }
+
+  function apiUrl(txt){ return "https://api.whatsapp.com/send?phone="+WA_NUMBER+"&text="+encodeURIComponent(txt); }
+  function waMeUrl(txt){ return "https://wa.me/"+WA_NUMBER+"?text="+encodeURIComponent(txt); }
+
+  function update(){
+    var ok=(n.value.trim()&&c.value.trim());
+    if(!ok){ a.setAttribute("aria-disabled","true"); a.removeAttribute("href"); a.removeAttribute("data-fallback"); sendHeight(); return; }
+    var msg=buildMsg();
+    a.href=apiUrl(msg);
+    a.setAttribute("data-fallback",waMeUrl(msg));
+    a.setAttribute("aria-disabled","false");
+    a.setAttribute("target","_top"); a.setAttribute("rel","noopener");
+    sendHeight();
+  }
+
+  // ====== Auto-resize للإطار ======
+  function sendHeight(){
+    try{
+      var h=document.documentElement.scrollHeight||document.body.scrollHeight||560;
+      if(h<360) h=360;
+      parent.postMessage({type:"waFormSize",height:h}, "*");
+    }catch(_){}
+  }
+  // راقب أي تغيير بالحجم
+  if(typeof ResizeObserver!=="undefined"){
+    new ResizeObserver(sendHeight).observe(document.body);
+  }else{
+    window.addEventListener("resize", sendHeight);
+    setInterval(sendHeight, 700);
+  }
+
+  n.addEventListener("input",update);
+  c.addEventListener("input",update);
+  update();
+
+  a.addEventListener("click",function(e){
+    if(a.getAttribute("aria-disabled")==="true"){ e.preventDefault(); return; }
+    var started=Date.now(); var fb=a.getAttribute("data-fallback");
+    setTimeout(function(){
+      if(document.visibilityState==="visible" && Date.now()-started>850 && fb){
+        top.location.href=fb;
+      }
+    },900);
+  });
+})();
+</script>
+</body>
+</html>'></iframe>
+  </div>
+
+  <script>
+    // يستقبل ارتفاع المحتوى ويضبط iframe تلقائياً
+    (function(){
+      var frame = document.getElementById("waFrame");
+      window.addEventListener("message", function(ev){
+        if(!ev || !ev.data || ev.data.type !== "waFormSize") return;
+        var h = parseInt(ev.data.height, 10);
+        if (!isNaN(h) && h > 200) frame.style.height = h + "px";
+      });
+    })();
+  </script>
+</body>
+</html>
+
