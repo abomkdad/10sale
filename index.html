@@ -1,365 +1,189 @@
-<!doctype html>
+# Create a GitHub-ready mini project with index.html + placeholder image p.qpng + README, then zip it
+
+from PIL import Image, ImageDraw, ImageFont
+import os, zipfile, textwrap, io, base64
+
+project_dir = "/mnt/data/whatsapp_order_landing"
+os.makedirs(project_dir, exist_ok=True)
+
+# 1) index.html content
+index_html = """<!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
-  <meta charset="utf-8"/>
-  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no"/>
-  <title>MAD Perfumeur – Landing</title>
-  <script src="https://cdn.tailwindcss.com"></script>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>تأكيد الطلب</title>
+  <meta property="og:image" content="p.qpng">
   <style>
-    body{background:#0b0f19;color:#fff}
-    .full-bleed{width:100vw;max-width:100vw;margin-left:calc(50% - 50vw);margin-right:calc(50% - 50vw)}
-    .no-scrollbar::-webkit-scrollbar{display:none}
-    .no-scrollbar{-ms-overflow-style:none;scrollbar-width:none}
-    img{-webkit-user-drag:none;user-select:none;display:block}
-    .field{background:#0f172a;border:1px solid #1f2a44;border-radius:14px;padding:.7rem .9rem}
-    .card{background:#0b1222;border:1px solid #1e293b;border-radius:18px}
-    .cta{background:linear-gradient(90deg,#fbbf24,#f59e0b);color:#111827}
+    :root { color-scheme: light dark; }
+    body { margin: 16px; font-family: Arial, sans-serif; }
+    .wrap { max-width: 430px; margin: 0 auto; }
+    .campaign { text-align:center; margin-bottom: 12px; }
+    .campaign img { max-width: 100%; display:block; border-radius: 12px; margin:0 auto; }
+    .fields { display:grid; gap:10px; }
+    .fields input, .cta {
+      padding: 12px; font-size: 16px; border-radius: 8px; box-sizing: border-box; width: 100%;
+    }
+    .fields input { border: 1px solid #ccc; }
+    .cta {
+      display:inline-block; text-align:center; background:#16a34a; color:#fff; font-weight:700; text-decoration:none; border:none; cursor:pointer;
+    }
+    .cta[aria-disabled="true"] { opacity:.55; pointer-events:none; }
   </style>
 </head>
-<body class="min-h-screen overflow-x-hidden">
-  <div id="app" class="mx-auto w-full max-w-sm px-3 pb-28">
+<body>
+  <div class="wrap">
+    <!-- صورة الحملة (أعدِل الملف p.qpng إلى صورتك بنفس الاسم أو استبدله) -->
+    <div class="campaign">
+      <img id="campaignImg" src="p.qpng" alt="campaign">
+    </div>
 
-    <!-- HEADER -->
-    <header class="sticky top-0 z-30 backdrop-blur bg-[#0e1424]/80 border-b border-slate-800">
-      <div class="flex items-center gap-3 p-3">
-        <img src="img/logo.png" onerror="this.style.display='none'" alt="logo" class="h-8 w-8 rounded-full ring-2 ring-amber-500">
-        <div class="flex-1 leading-tight">
-          <h1 id="t_title" class="text-sm font-semibold">...</h1>
-          <p class="text-[11px] text-slate-400">MAD Perfumeur</p>
-        </div>
-        <a id="callWa" href="#" class="text-amber-400 text-sm">WhatsApp</a>
-      </div>
-    </header>
-
-    <!-- SECTION 1: HERO IMAGE (صورة المنتج الوحيدة) -->
-    <section class="mt-3">
-      <div class="rounded-2xl overflow-hidden border border-slate-800 bg-slate-900">
-        <!-- تُعرض بكامل العرض، الارتفاع تلقائي حسب الصورة -->
-        <img id="heroImg" src="" alt="المنتج" class="w-full h-auto">
-      </div>
-      <p id="t_hint" class="text-[12px] text-slate-400 mt-2"></p>
-    </section>
-
-    <!-- SECTION 2: ORDER FORM -->
-    <section class="mt-3">
-      <div class="card">
-        <form id="orderForm" class="p-3 space-y-3">
-          <div>
-            <label id="t_name" class="text-[11px] text-slate-400">الاسم الكامل</label>
-            <input id="name" required class="field w-full text-sm" />
-          </div>
-          <div>
-            <label id="t_phone" class="text-[11px] text-slate-400">رقم الهاتف</label>
-            <input id="phone" required class="field w-full text-sm" />
-          </div>
-          <div>
-            <label id="t_city" class="text-[11px] text-slate-400">المدينة / العنوان</label>
-            <input id="city" required class="field w-full text-sm" />
-          </div>
-          <div>
-            <label id="t_notes" class="text-[11px] text-slate-400">ملاحظات (اختياري)</label>
-            <textarea id="notes" rows="2" class="field w-full text-sm"></textarea>
-          </div>
-
-          <div class="flex items-start gap-2 text-xs text-slate-300">
-            <input id="agree" type="checkbox" class="mt-1">
-            <label id="t_confirm" for="agree" class="leading-snug">...</label>
-          </div>
-
-          <div class="flex gap-2">
-            <button id="sendBtn" type="submit" class="flex-1 inline-flex items-center justify-center gap-2 rounded-2xl py-3 text-sm font-semibold cta hover:opacity-90 disabled:opacity-60 disabled:cursor-not-allowed">
-              <span id="t_send">إرسال الطلب عبر واتساب</span>
-            </button>
-            <button id="previewBtn" type="button" class="px-3 rounded-2xl border border-slate-700 bg-slate-800 text-sm">
-              <span id="t_preview">معاينة</span>
-            </button>
-          </div>
-        </form>
-      </div>
-    </section>
-
-    <!-- SECTION 3: ABOUT IMAGE (صورة الشركة) -->
-    <section class="mt-4">
-      <img id="aboutImg" src="" alt="About / על החברה" class="full-bleed block h-auto" loading="lazy" decoding="async">
-      <p id="aboutStatus" class="text-center text-[12px] text-red-300 mt-1"></p>
-    </section>
-
-    <!-- STICKY CTA -->
-    <div class="fixed bottom-2 inset-x-3 z-30">
-      <a href="#" id="ctaTop" class="block w-full text-center rounded-2xl py-3 cta font-bold shadow-lg">
-        <span id="t_orderNow">اطلب الآن</span>
-      </a>
+    <!-- حقلا الاسم + المدينة وزر واتساب -->
+    <div class="fields">
+      <input type="text" id="cust-name" placeholder="الاسم" required>
+      <input type="text" id="cust-city" placeholder="المدينة" required>
+      <a id="goWA" class="cta" aria-disabled="true" href="#">تأكيد الطلب عبر واتساب</a>
     </div>
   </div>
 
-  <!-- PREVIEW MODAL -->
-  <div id="modal" class="hidden fixed inset-0 z-50 bg-black/70 items-center justify-center p-3">
-    <div class="w-full max-w-sm rounded-2xl bg-slate-900 border border-slate-800 overflow-hidden">
-      <div class="flex items-center justify-between p-3 border-b border-slate-800">
-        <p id="t_previewTitle" class="text-sm font-semibold">معاينة</p>
-        <button id="closeModal" class="p-1 rounded-lg bg-slate-800 border border-slate-700">✕</button>
-      </div>
-      <div class="p-3 space-y-3">
-        <div class="rounded-2xl overflow-hidden border border-slate-800">
-          <img id="prevImg" src="" class="w-full h-auto">
-        </div>
-        <div class="text-xs text-slate-200 space-y-1">
-          <div><b id="t_prevName">الاسم:</b> <span id="prevName">—</span></div>
-          <div><b id="t_prevPhone">الهاتف:</b> <span id="prevPhone">—</span></div>
-          <div><b id="t_prevAddr">العنوان:</b> <span id="prevAddr">—</span></div>
-          <div id="prevNotesWrap" class="hidden"><b id="t_prevNotes">ملاحظات:</b> <span id="prevNotes">—</span></div>
-        </div>
-        <div class="flex gap-2">
-          <button id="sendFromPreview" class="flex-1 inline-flex items-center justify-center gap-2 rounded-xl cta py-2 text-sm font-semibold">
-            <span id="t_sendNow">إرسال الطلب الآن</span>
-          </button>
-          <a id="downloadHero" class="hidden flex-1 inline-flex items-center justify-center gap-2 rounded-xl bg-slate-800 border border-slate-700 py-2 text-sm">
-            <span id="t_download">تنزيل الصورة</span>
-          </a>
-        </div>
-      </div>
-    </div>
-  </div>
+  <script>
+  (function () {
+    var WA_NUMBER = "972506164130";
 
-<script>
-/*** CONFIG ***/
-let WHATSAPP_NUMBER = "972506164130"; // يمكن تغييره مؤقتًا عبر ?wa=
-let HERO_SRC = "";  // سيُحدَّد تلقائيًا
-let ABOUT_SRC = ""; // سيُحدَّد تلقائيًا
+    // لغات الواجهة
+    var I18N = {
+      ar: { dir:"rtl", name:"الاسم", city:"المدينة", btn:"تأكيد الطلب عبر واتساب", confirm:"أنا أؤكد طلب هذه المجموعة.", imageLabel:"رابط الصورة" },
+      he: { dir:"rtl", name:"שם",   city:"עיר",      btn:"אישור הזמנה ב־WhatsApp", confirm:"אני מאשר/ת את הזמנת המארז הזה.", imageLabel:"קישור לתמונה" },
+      en: { dir:"ltr", name:"Name", city:"City",     btn:"Confirm Order via WhatsApp", confirm:"I confirm ordering this bundle.", imageLabel:"Image link" }
+    };
+    var lang = (navigator.language && navigator.language.indexOf("he")===0) ? "he"
+              : (navigator.language && navigator.language.indexOf("ar")===0) ? "ar"
+              : "en";
+    var t = I18N[lang];
+    document.documentElement.lang = lang;
+    document.documentElement.dir  = t.dir;
 
-/*** I18N ***/
-const STR = {
-  ar: {
-    title:"عطور مختارة – اطلب الآن عبر واتساب",
-    hint:"* تأكيد الطلب يتضمن صورة المنتج المختار تلقائيًا في واتساب (Link Preview).",
-    name:"الاسم الكامل",
-    phone:"رقم الهاتف",
-    city:"المدينة / العنوان",
-    notes:"ملاحظات (اختياري)",
-    confirm:"أؤكد أن هذا النموذج خاص بالطلب فقط وليس للاستفسارات، وأوافق على إتمام الطلب وفق التفاصيل.",
-    send:"إرسال الطلب عبر واتساب",
-    preview:"معاينة",
-    orderNow:"اطلب الآن",
-    previewTitle:"معاينة",
-    prevName:"الاسم:",
-    prevPhone:"الهاتف:",
-    prevAddr:"العنوان:",
-    prevNotes:"ملاحظات:",
-    sendNow:"إرسال الطلب الآن",
-    download:"تنزيل الصورة",
-    aboutMissing:"لم يتم العثور على صورة About داخل مجلد img",
-  },
-  he: {
-    title:"בשמים נבחרים – הזמנה בווטסאפ",
-    hint:"* אישור ההזמנה יכלול תצוגת תמונה אוטומטית בווטסאפ (Link Preview).",
-    name:"שם מלא",
-    phone:"מספר טלפון",
-    city:"עיר / כתובת",
-    notes:"הערות (אופציונלי)",
-    confirm:"אני מאשר/ת שטופס זה מיועד להזמנה בלבד ולא לפניות כלליות, ומסכים/ה להשלים את ההזמנה לפי הפרטים.",
-    send:"שליחת ההזמנה בווטסאפ",
-    preview:"תצוגה מקדימה",
-    orderNow:"הזמנה עכשיו",
-    previewTitle:"תצוגה מקדימה",
-    prevName:"שם:",
-    prevPhone:"טלפון:",
-    prevAddr:"כתובת:",
-    prevNotes:"הערות:",
-    sendNow:"שלח/י הזמנה עכשיו",
-    download:"הורד/י תמונה",
-    aboutMissing:"לא נמצאה תמונת About בתיקיית img",
-  }
-};
+    // عناصر
+    var nameEl = document.getElementById("cust-name");
+    var cityEl = document.getElementById("cust-city");
+    var waBtn  = document.getElementById("goWA");
+    var imgEl  = document.getElementById("campaignImg");
 
-function detectLang(){
-  const qs=new URLSearchParams(location.search);
-  const q=qs.get('lang');
-  if(q==='ar'||q==='he') return q;
-  const nav=(navigator.languages&&navigator.languages[0])||navigator.language||'ar';
-  if(/^he\b/i.test(nav)) return 'he';
-  if(/^ar\b/i.test(nav)) return 'ar';
-  return 'ar';
-}
-let LANG = detectLang();
+    // ترجمة واجهة
+    nameEl.placeholder = t.name;
+    cityEl.placeholder = t.city;
+    waBtn.textContent  = t.btn;
 
-const G = id => document.getElementById(id);
-const els = {
-  callWa:G('callWa'),
-  hero:G('heroImg'),
-  about:G('aboutImg'),
-  aboutStatus:G('aboutStatus'),
-  name:G('name'), phone:G('phone'), city:G('city'), notes:G('notes'), agree:G('agree'),
-  prevImg:G('prevImg'), prevName:G('prevName'), prevPhone:G('prevPhone'), prevAddr:G('prevAddr'),
-  prevNotesWrap:G('prevNotesWrap'), prevNotes:G('prevNotes'),
-  modal:G('modal'),
-  downloadHero:G('downloadHero'),
-  // labels
-  t:{
-    title:G('t_title'), hint:G('t_hint'), name:G('t_name'), phone:G('t_phone'), city:G('t_city'), notes:G('t_notes'),
-    confirm:G('t_confirm'), send:G('t_send'), preview:G('t_preview'), orderNow:G('t_orderNow'),
-    previewTitle:G('t_previewTitle'), prevName:G('t_prevName'), prevPhone:G('t_prevPhone'),
-    prevAddr:G('t_prevAddr'), prevNotes:G('t_prevNotes'), sendNow:G('t_sendNow'), download:G('t_download')
-  }
-};
-
-function i18n(){
-  const S=STR[LANG];
-  document.documentElement.lang = LANG==='he'?'he':'ar';
-  document.documentElement.dir  = 'rtl';
-  els.t.title.textContent=S.title;
-  els.t.hint.textContent=S.hint;
-  els.t.name.textContent=S.name;
-  els.t.phone.textContent=S.phone;
-  els.t.city.textContent=S.city;
-  els.t.notes.textContent=S.notes;
-  els.t.confirm.textContent=S.confirm;
-  els.t.send.textContent=S.send;
-  els.t.preview.textContent=S.preview;
-  els.t.orderNow.textContent=S.orderNow;
-  els.t.previewTitle.textContent=S.previewTitle;
-  els.t.prevName.textContent=S.prevName;
-  els.t.prevPhone.textContent=S.prevPhone;
-  els.t.prevAddr.textContent=S.prevAddr;
-  els.t.prevNotes.textContent=S.prevNotes;
-  els.t.sendNow.textContent=S.sendNow;
-  els.t.download.textContent=S.download;
-}
-
-function normalizeILPhone(input){
-  const d=(input||"").replace(/\D+/g,"");
-  if(!d) return "";
-  if(d.startsWith("972")){
-    const local=d.slice(3);
-    return local.startsWith("0")?local:"0"+local;
-  }
-  if(d.startsWith("05")) return d;
-  if(d.startsWith("5")) return "0"+d;
-  return d;
-}
-
-/*** تحميل صورة تلقائيًا حسب أسماء شائعة أو via ?hero= و ?about= ***/
-function canLoad(src){
-  return new Promise(res=>{
-    const im=new Image();
-    im.onload=()=>res(true);
-    im.onerror=()=>res(false);
-    im.src = src + (src.includes('?')?'&':'?') + 'v=' + Date.now();
-  });
-}
-
-async function resolveImageAuto(type){
-  const qs = new URLSearchParams(location.search);
-  const direct = qs.get(type);
-  if (direct){
-    const src = 'img/' + decodeURIComponent(direct);
-    if (await canLoad(src)) return src;
-  }
-  // أسماء محتملة
-  const basesHero = ['hero','main','product','banner','cover','p1','Q106'];
-  const basesAbout = ['About BNG','ABOUT BNG','about','about bng','About_BNG','About-BNG','ABOUT_BNG','about_bng','about-bng'];
-  const bases = type==='hero'?basesHero:basesAbout;
-  const exts  = ['.png','.jpg','.jpeg','.webp','.PNG','.JPG','.JPEG','.WEBP'];
-  const encs  = s => [s, s.replace(/\s/g,'%20'), s.replace(/\s/g,'+')];
-
-  for (const b of bases){
-    for (const e of exts){
-      for (const p of encs(`img/${b}${e}`)){
-        if (await canLoad(p)) return p;
-      }
+    function absolutize(url){
+      try { return new URL(url, location.href).toString(); } catch(e){ return url; }
     }
-  }
-  return "";
-}
 
-/*** نص واتساب مع Link Preview: السطر الأول = رابط صورة المنتج المطلقة ***/
-function buildOrderText(){
-  const S=STR[LANG];
-  const data = {
-    name:  els.name.value.trim(),
-    phone: normalizeILPhone(els.phone.value),
-    city:  els.city.value.trim(),
-    notes: (els.notes.value||"").trim()
-  };
-  const text =
-    `🧾 MAD Perfumeur — ${LANG==='he'?'הזמנה חדשה':'طلب جديد'}\n\n`+
-    `${S.prevName} ${data.name}\n`+
-    `${S.prevPhone} ${data.phone}\n`+
-    `${S.prevAddr} ${data.city}\n`+
-    (data.notes?`${S.prevNotes} ${data.notes}\n\n`:"\n")+
-    `${LANG==='he'?'אני מאשר/ת ביצוע הזמנה לפי הפרטים.':'أؤكد تنفيذ الطلب وفق التفاصيل.'}`;
+    function buildMessage(name, city, imgUrl) {
+      var lines = [
+        "[" + lang.toUpperCase() + "] " + t.confirm,
+        t.name + ": " + name,
+        t.city + ": " + city
+      ];
+      if (imgUrl) lines.push(t.imageLabel + ": " + imgUrl);
+      return lines.join("\\n");
+    }
 
-  // رابط الصورة (مطلق) في السطر الأول
-  const heroAbsolute = new URL(HERO_SRC || els.hero.src || 'img/p1.png', location.href).href;
-  return { textWithPreview: `${heroAbsolute}\n\n${text}`, heroAbsolute };
-}
+    function buildWaLink(text) {
+      return "https://api.whatsapp.com/send?phone=" + WA_NUMBER + "&text=" + encodeURIComponent(text);
+    }
 
-/*** فتح واتساب ***/
-function openWhatsApp(text){
-  const urlApp = `whatsapp://send?phone=${WHATSAPP_NUMBER}&text=${encodeURIComponent(text)}`;
-  const urlWeb = `https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(text)}`;
-  try { window.location.href = urlApp; setTimeout(()=>window.open(urlWeb,"_blank"), 700); }
-  catch { window.open(urlWeb,"_blank"); }
-}
+    function updateLink() {
+      var name = (nameEl.value || "").trim();
+      var city = (cityEl.value || "").trim();
+      if (!name || !city) {
+        waBtn.setAttribute("aria-disabled", "true");
+        waBtn.href = "#";
+        return;
+      }
+      var imgUrl = (imgEl && imgEl.src) ? absolutize(imgEl.src) : "";
+      var text = buildMessage(name, city, imgUrl); // يضيف رابط الصورة كدليل
+      waBtn.href = buildWaLink(text);
+      waBtn.setAttribute("aria-disabled", "false");
+    }
 
-/*** معاينة ***/
-function fillPreview(){
-  const { heroAbsolute } = buildOrderText();
-  els.prevImg.src = HERO_SRC || els.hero.src || heroAbsolute;
-  els.prevName.textContent  = els.name.value || '—';
-  els.prevPhone.textContent = normalizeILPhone(els.phone.value) || '—';
-  els.prevAddr.textContent  = els.city.value || '—';
-  const n=(els.notes.value||"").trim();
-  if(n){ els.prevNotesWrap.classList.remove('hidden'); els.prevNotes.textContent=n; }
-  else { els.prevNotesWrap.classList.add('hidden'); els.prevNotes.textContent=""; }
-}
+    nameEl.addEventListener("input", updateLink);
+    cityEl.addEventListener("input", updateLink);
+    updateLink();
 
-/*** أحداث ***/
-document.getElementById('previewBtn').onclick = ()=>{ fillPreview(); els.modal.classList.remove('hidden'); els.modal.classList.add('flex'); };
-document.getElementById('closeModal').onclick = ()=>{ els.modal.classList.add('hidden'); els.modal.classList.remove('flex'); };
-document.getElementById('sendFromPreview').onclick = doSend;
-document.getElementById('orderForm').addEventListener('submit', (e)=>{ e.preventDefault(); doSend(); });
-document.getElementById('ctaTop').onclick = (e)=>{ e.preventDefault(); document.getElementById('orderForm').scrollIntoView({ behavior:'smooth', block:'start' }); };
-
-/*** SEND ***/
-function doSend(){
-  if(!els.agree.checked){
-    alert(LANG==='he'?'יש לאשר את התנאים לפני שליחה':'يرجى تأكيد الموافقة على الشروط قبل الإرسال.');
-    return;
-  }
-  const { textWithPreview, heroAbsolute } = buildOrderText();
-  // افتح واتساب مع Link Preview للصورة
-  openWhatsApp(textWithPreview);
-  // زر تنزيل (اختياري) لتمكين حفظ الصورة
-  els.downloadHero.classList.remove('hidden');
-  els.downloadHero.href = heroAbsolute;
-  els.modal.classList.remove('hidden'); els.modal.classList.add('flex');
-}
-
-/*** INIT ***/
-(async function init() {
-  // رقم واتساب من ?wa=
-  const qs = new URLSearchParams(location.search);
-  const wa = (qs.get('wa')||'').replace(/\D+/g,'');
-  if(wa) WHATSAPP_NUMBER = wa;
-  if (document.getElementById('callWa')) document.getElementById('callWa').href = "https://wa.me/"+WHATSAPP_NUMBER;
-
-  // لغة + نصوص
-  LANG = detectLang(); i18n();
-
-  // تحميل الصور تلقائياً
-  HERO_SRC = await resolveImageAuto('hero') || 'img/p1.png';
-  ABOUT_SRC = await resolveImageAuto('about') || '';
-  // عيّن المصادر
-  const heroEl = document.getElementById('heroImg');
-  heroEl.src = HERO_SRC;
-  const aboutEl = document.getElementById('aboutImg');
-  const aboutStatus = document.getElementById('aboutStatus');
-  if (ABOUT_SRC){ aboutEl.src = ABOUT_SRC; if(aboutStatus) aboutStatus.textContent=""; }
-  else { if(aboutStatus) aboutStatus.textContent = STR[LANG].aboutMissing; }
-
-  // معاينة مبدئية
-  document.getElementById('prevImg').src = HERO_SRC;
-})();
-</script>
+    // منع النقر إذا كان معطّلاً
+    waBtn.addEventListener("click", function(e){
+      if (waBtn.getAttribute("aria-disabled")==="true") e.preventDefault();
+    });
+  })();
+  </script>
 </body>
 </html>
+"""
+
+with open(os.path.join(project_dir, "index.html"), "w", encoding="utf-8") as f:
+    f.write(index_html)
+
+# 2) Create placeholder p.qpng (PNG image) 1200x1600 with simple text
+w, h = 1200, 1600
+img = Image.new("RGB", (w, h), (230, 230, 230))
+draw = ImageDraw.Draw(img)
+
+text = "p.qpng\nضع صورتك هنا"
+# Try to load a default font
+try:
+    font = ImageFont.truetype("DejaVuSans.ttf", 64)
+except:
+    font = ImageFont.load_default()
+
+# Wrap and center
+lines = text.split("\n")
+total_height = 0
+line_sizes = []
+for line in lines:
+    size = draw.textbbox((0,0), line, font=font)
+    line_w = size[2]-size[0]
+    line_h = size[3]-size[1]
+    line_sizes.append((line_w, line_h))
+    total_height += line_h + 10
+y = (h - total_height)//2
+for i, line in enumerate(lines):
+    line_w, line_h = line_sizes[i]
+    x = (w - line_w)//2
+    draw.text((x,y), line, fill=(80,80,80), font=font)
+    y += line_h + 10
+
+img_path = os.path.join(project_dir, "p.qpng")
+img.save(img_path, format="PNG")
+
+# 3) README.md
+readme = """# WhatsApp Order Landing (Image + Name/City)
+
+صفحة هبوط بسيطة لواتساب:
+- صورة الحملة **p.qpng** في أعلى الصفحة
+- حقلا **الاسم + المدينة**
+- زر يفتح واتساب مع رسالة تأكيد + رابط الصورة كدليل الطلب
+
+## الاستخدام
+1. ضع هذه الملفات في مستودع GitHub (مثلاً `abomkdad/landing-pages` أو مستودع جديد).
+2. **استبدل** الملف `p.qpng` بصورتك بنفس الاسم تمامًا (p.qpng).
+3. افتح `index.html` في المتصفح (أو فعّل GitHub Pages) وجرب:
+   - اكتب الاسم والمدينة → يصبح الزر فعّالًا وينتقل إلى واتساب.
+
+## تغيير رقم الواتساب
+افتح `index.html` وابحث عن `WA_NUMBER` واستبدل الرقم إذا لزم.
+
+## ملاحظات
+- الرسالة تتضمّن جملة التأكيد بالاعتماد على لغة جهاز العميل (عربي/عبري/إنجليزي) + رابط الصورة `p.qpng` كدليل.
+- لا توجد نماذج أو نوافذ منبثقة — الزر رابط مباشر لـ api.whatsapp.com.
+"""
+
+with open(os.path.join(project_dir, "README.md"), "w", encoding="utf-8") as f:
+    f.write(readme)
+
+# 4) Zip the project
+zip_path = "/mnt/data/whatsapp-order-landing-pqpng.zip"
+with zipfile.ZipFile(zip_path, "w", zipfile.ZIP_DEFLATED) as z:
+    for fname in ["index.html", "p.qpng", "README.md"]:
+        z.write(os.path.join(project_dir, fname), arcname=fname)
+
+zip_path
