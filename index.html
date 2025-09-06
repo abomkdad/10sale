@@ -141,3 +141,110 @@
   </script>
 </body>
 </html>
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <!-- الصورة المعروضة (هي نفسها اللوغو ومعاينة الرابط) -->
+    <div class="campaign">
+      <img id="campaignImg" src="p.qpng" alt="campaign" />
+    </div>
+
+    <!-- الاسم + المدينة + زر واتساب -->
+    <div class="fields">
+      <input type="text" id="cust-name" placeholder="الاسم" required />
+      <input type="text" id="cust-city" placeholder="المدينة" required />
+      <a id="goWA" class="cta" href="#" aria-disabled="true">تأكيد الطلب عبر واتساب</a>
+    </div>
+  </div>
+
+  <script>
+  (function () {
+    var WA_NUMBER = "972506164130";
+
+    // واجهة ثلاث لغات تلقائيًا
+    var I18N = {
+      ar: { dir:"rtl", name:"الاسم", city:"المدينة", btn:"تأكيد الطلب عبر واتساب", confirm:"أنا أؤكد طلب هذه المجموعة.", imageLabel:"رابط الصفحة" },
+      he: { dir:"rtl", name:"שם",   city:"עיר",      btn:"אישור הזמנה ב־WhatsApp",  confirm:"אני מאשר/ת את הזמנת המארז הזה.", imageLabel:"קישור לעמוד" },
+      en: { dir:"ltr", name:"Name", city:"City",     btn:"Confirm Order via WhatsApp", confirm:"I confirm ordering this bundle.", imageLabel:"Page link" }
+    };
+    var lang = (navigator.language && navigator.language.indexOf("he")===0) ? "he"
+              : (navigator.language && navigator.language.indexOf("ar")===0) ? "ar"
+              : "en";
+    var t = I18N[lang];
+    document.documentElement.lang = lang;
+    document.documentElement.dir  = t.dir;
+
+    var nameEl = document.getElementById("cust-name");
+    var cityEl = document.getElementById("cust-city");
+    var waBtn  = document.getElementById("goWA");
+
+    // ترجمة الواجهة
+    nameEl.placeholder = t.name;
+    cityEl.placeholder = t.city;
+    waBtn.textContent  = t.btn;
+
+    // يبني رابط مطلق للصفحة + كسر كاش لتحسين الـPreview
+    function absolutePageUrl(){
+      var origin = (location.origin || (location.protocol + "//" + location.host));
+      var path   = location.pathname || "/";
+      var qs     = location.search || "";
+      var url    = origin + path + qs;
+      var hash   = url.indexOf("#");
+      if (hash > -1) url = url.substring(0, hash);
+      var sep = (url.indexOf("?")>-1) ? "&" : "?";
+      return url + sep + "v=" + Date.now();
+    }
+
+    function buildMessage(name, city, pageUrl) {
+      var lines = [
+        "[" + lang.toUpperCase() + "] " + t.confirm,
+        (lang==="ar" ? "الاسم: " : lang==="he" ? "שם: " : "Name: ") + name,
+        (lang==="ar" ? "المدينة: " : lang==="he" ? "עיר: " : "City: ") + city,
+        pageUrl   // سطر أخير = رابط الصفحة ليظهر الـ Link Preview بالصورة p.qpng
+      ];
+      return lines.join("\n");
+    }
+
+    function buildApiUrl(text) {
+      return "https://api.whatsapp.com/send?phone=" + WA_NUMBER + "&text=" + encodeURIComponent(text);
+    }
+    function buildWaMeUrl(text) {
+      return "https://wa.me/" + WA_NUMBER + "?text=" + encodeURIComponent(text);
+    }
+
+    function updateLink(){
+      var name = (nameEl.value || "").trim();
+      var city = (cityEl.value || "").trim();
+      if (!name || !city) {
+        waBtn.setAttribute("aria-disabled","true");
+        waBtn.href = "#";
+        waBtn.removeAttribute("data-fallback");
+        return;
+      }
+      var pageUrl = absolutePageUrl();
+      var msg = buildMessage(name, city, pageUrl);
+      waBtn.href = buildApiUrl(msg);
+      waBtn.setAttribute("data-fallback", buildWaMeUrl(msg));
+      waBtn.setAttribute("aria-disabled","false");
+    }
+
+    nameEl.addEventListener("input", updateLink);
+    cityEl.addEventListener("input", updateLink);
+    updateLink();
+
+    // انتقال قوي: api.whatsapp أولاً، ثم wa.me كخطة احتياط
+    waBtn.addEventListener("click", function(e){
+      if (waBtn.getAttribute("aria-disabled")==="true") { e.preventDefault(); return; }
+      var started = Date.now();
+      var fallback = waBtn.getAttribute("data-fallback");
+      setTimeout(function(){
+        if (document.visibilityState === "visible" && Date.now() - started > 850 && fallback) {
+          location.href = fallback;
+        }
+      }, 900);
+    });
+  })();
+  </script>
+</body>
+</html>
