@@ -5,18 +5,9 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>تأكيد الطلب</title>
 
-  <!-- نفس صورة الصفحة كلوغو/فافيكون -->
-  <link rel="icon" type="image/png" href="p.qpng">
-  <link rel="apple-touch-icon" href="p.qpng">
-  <meta name="theme-color" content="#16a34a" />
-
-  <!-- نفس الصورة لمعاينة الرابط (OG/Twitter) -->
-  <meta property="og:title" content="تأكيد طلب المجموعة" />
-  <meta property="og:description" content="طلب مؤكد من صفحة العرض." />
-  <meta property="og:type" content="website" />
-  <meta property="og:image" content="p.qpng" />
-  <meta name="twitter:card" content="summary_large_image" />
-  <meta name="twitter:image" content="p.qpng" />
+  <!-- فافيكون/لوغو (سنضبطه بنفس رابط الصورة عبر JavaScript) -->
+  <link id="dyn-favicon" rel="icon" type="image/png" href="">
+  <link id="dyn-appleicon" rel="apple-touch-icon" href="">
 
   <style>
     :root { color-scheme: light dark; }
@@ -38,9 +29,9 @@
 </head>
 <body>
   <div class="wrap">
-    <!-- الصورة المعروضة (هي نفسها اللوغو ومعاينة الرابط) -->
+    <!-- الصورة تُعرض من نفس رابط IMG_URL -->
     <div class="campaign">
-      <img id="campaignImg" src="p.qpng" alt="campaign" />
+      <img id="campaignImg" src="" alt="campaign">
     </div>
 
     <!-- الاسم + المدينة + زر واتساب -->
@@ -53,14 +44,98 @@
 
   <script>
   (function () {
+    // ******** غيّر هذا السطر فقط لكل صفحة جديدة ********
+    var IMG_URL = "https://example.com/path/to/your-campaign-image.png";
+    // ****************************************************
+
     var WA_NUMBER = "972506164130";
 
     // واجهة ثلاث لغات تلقائيًا
     var I18N = {
-      ar: { dir:"rtl", name:"الاسم", city:"المدينة", btn:"تأكيد الطلب عبر واتساب", confirm:"أنا أؤكد طلب هذه المجموعة.", imageLabel:"رابط الصفحة" },
-      he: { dir:"rtl", name:"שם",   city:"עיר",      btn:"אישור הזמנה ב־WhatsApp",  confirm:"אני מאשר/ת את הזמנת המארז הזה.", imageLabel:"קישור לעמוד" },
-      en: { dir:"ltr", name:"Name", city:"City",     btn:"Confirm Order via WhatsApp", confirm:"I confirm ordering this bundle.", imageLabel:"Page link" }
+      ar: { dir:"rtl", name:"الاسم", city:"المدينة", btn:"تأكيد الطلب عبر واتساب", confirm:"أنا أؤكد طلب هذه المجموعة." },
+      he: { dir:"rtl", name:"שם",   city:"עיר",      btn:"אישור הזמנה ב־WhatsApp",  confirm:"אני מאשר/ת את הזמנת המארז הזה." },
+      en: { dir:"ltr", name:"Name", city:"City",     btn:"Confirm Order via WhatsApp", confirm:"I confirm ordering this bundle." }
     };
+    var lang = (navigator.language && navigator.language.indexOf("he")===0) ? "he"
+              : (navigator.language && navigator.language.indexOf("ar")===0) ? "ar"
+              : "en";
+    var t = I18N[lang];
+    document.documentElement.lang = lang;
+    document.documentElement.dir  = t.dir;
+
+    // عناصر
+    var nameEl = document.getElementById("cust-name");
+    var cityEl = document.getElementById("cust-city");
+    var waBtn  = document.getElementById("goWA");
+    var imgEl  = document.getElementById("campaignImg");
+
+    // ترجمة واجهة
+    nameEl.placeholder = t.name;
+    cityEl.placeholder = t.city;
+    waBtn.textContent  = t.btn;
+
+    // ضبط الصورة المعروضة واللوغو من نفس الرابط
+    function setLogo(url){
+      imgEl.src = url;
+      var fav = document.getElementById("dyn-favicon");
+      var app = document.getElementById("dyn-appleicon");
+      if (fav) fav.href = url;
+      if (app) app.href = url;
+    }
+    setLogo(IMG_URL);
+
+    // بناء الرسالة: آخر سطر هو رابط الصورة نفسها لعمل Link Preview للصورة مباشرة
+    function buildMessage(name, city, imageUrl) {
+      var lines = [
+        "[" + lang.toUpperCase() + "] " + t.confirm,
+        (lang==="ar" ? "الاسم: " : lang==="he" ? "שם: " : "Name: ") + name,
+        (lang==="ar" ? "المدينة: " : lang==="he" ? "עיר: " : "City: ") + city,
+        imageUrl // ⚠️ هذا السطر يجعل واتساب يعرض نفس الصورة كـ Link Preview
+      ];
+      return lines.join("\n");
+    }
+
+    function buildApiUrl(text) {
+      return "https://api.whatsapp.com/send?phone=" + WA_NUMBER + "&text=" + encodeURIComponent(text);
+    }
+    function buildWaMeUrl(text) {
+      return "https://wa.me/" + WA_NUMBER + "?text=" + encodeURIComponent(text);
+    }
+
+    function updateLink(){
+      var name = (nameEl.value || "").trim();
+      var city = (cityEl.value || "").trim();
+      if (!name || !city) {
+        waBtn.setAttribute("aria-disabled","true");
+        waBtn.href = "#";
+        waBtn.removeAttribute("data-fallback");
+        return;
+      }
+      var msg = buildMessage(name, city, IMG_URL);
+      waBtn.href = buildApiUrl(msg);
+      waBtn.setAttribute("data-fallback", buildWaMeUrl(msg));
+      waBtn.setAttribute("aria-disabled","false");
+    }
+
+    nameEl.addEventListener("input", updateLink);
+    cityEl.addEventListener("input", updateLink);
+    updateLink();
+
+    // انتقال قوي: api.whatsapp أولاً، ثم wa.me كخطة احتياط
+    waBtn.addEventListener("click", function(e){
+      if (waBtn.getAttribute("aria-disabled")==="true") { e.preventDefault(); return; }
+      var started = Date.now();
+      var fallback = waBtn.getAttribute("data-fallback");
+      setTimeout(function(){
+        if (document.visibilityState === "visible" && Date.now() - started > 850 && fallback) {
+          location.href = fallback;
+        }
+      }, 900);
+    });
+  })();
+  </script>
+</body>
+</html>    };
     var lang = (navigator.language && navigator.language.indexOf("he")===0) ? "he"
               : (navigator.language && navigator.language.indexOf("ar")===0) ? "ar"
               : "en";
