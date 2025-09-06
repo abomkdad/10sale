@@ -25,12 +25,11 @@
 </head>
 <body>
   <div class="wrap">
-    <!-- صورة المنتج/الحملة التي سنأخذ منها الصورة المصغّرة -->
+    <!-- ضع الصورة باسم p.qpng بجانب هذا الملف -->
     <div class="campaign">
       <img id="campaignImg" src="p.qpng" alt="campaign" />
     </div>
 
-    <!-- حقلا الاسم + المدينة وزر واتساب -->
     <div class="fields">
       <input type="text" id="cust-name" placeholder="الاسم" required />
       <input type="text" id="cust-city" placeholder="المدينة" required />
@@ -40,9 +39,8 @@
 
   <script>
   (function () {
-    var WA_NUMBER = "972506164130";
+    var WA_NUMBER = "972506164130"; // <-- الرقم المطلوب
 
-    // لغات الواجهة + نص التأكيد
     var I18N = {
       ar: { dir:"rtl", name:"الاسم", city:"المدينة", btn:"تأكيد الطلب عبر واتساب", confirm:"أنا أؤكد طلب هذه المجموعة.", imageLabel:"رابط الصورة" },
       he: { dir:"rtl", name:"שם",   city:"עיר",      btn:"אישור הזמנה ב־WhatsApp",  confirm:"אני מאשר/ת את הזמנת המארז הזה.", imageLabel:"קישור לתמונה" },
@@ -52,7 +50,6 @@
               : (navigator.language && navigator.language.indexOf("ar")===0) ? "ar"
               : "en";
     var t = I18N[lang];
-
     document.documentElement.lang = lang;
     document.documentElement.dir  = t.dir;
 
@@ -61,13 +58,11 @@
     var waBtn  = document.getElementById("goWA");
     var imgEl  = document.getElementById("campaignImg");
 
-    // ترجمات الواجهة
     nameEl.placeholder = t.name;
     cityEl.placeholder = t.city;
     waBtn.textContent  = t.btn;
 
-    function absolutize(url){ try { return new URL(url, location.href).toString(); } catch(e){ return url; } }
-
+    function absolutize(u){ try { return new URL(u, location.href).toString(); } catch(e){ return u; } }
     function buildMessage(name, city, imgUrl) {
       var lines = [
         "[" + lang.toUpperCase() + "] " + t.confirm,
@@ -77,12 +72,11 @@
       if (imgUrl) lines.push(t.imageLabel + ": " + imgUrl);
       return lines.join("\n");
     }
-
     function buildWaLink(text) {
       return "https://api.whatsapp.com/send?phone=" + WA_NUMBER + "&text=" + encodeURIComponent(text);
     }
 
-    // صورة مصغّرة من الصورة المعروضة فقط
+    // إنشاء صورة مصغّرة من p.qpng (إن أمكن) ومشاركتها مع الرسالة
     function captureThumb(imgEl, maxW) {
       return new Promise(function(resolve){
         if (!imgEl) return resolve(null);
@@ -100,13 +94,12 @@
           try {
             g.drawImage(imgEl, 0, 0, c.width, c.height);
             c.toBlob(function(b){ resolve(b || null); }, "image/png", 0.92);
-          } catch(e) { resolve(null); } // CORS ⇒ فالباك
+          } catch(e) { resolve(null); }
         }
         if (imgEl.complete && imgEl.naturalWidth) work();
         else { imgEl.onload = work; imgEl.onerror = function(){ resolve(null); }; }
       });
     }
-
     function canShareFile(blob){
       if (!navigator.canShare || !blob) return false;
       try {
@@ -115,7 +108,6 @@
       } catch(e){ return false; }
     }
 
-    // نبقي الزر فعّال فقط عند تعبئة الاسم والمدينة + نجهّز رابط فالباك
     function updateLink(){
       var name = (nameEl.value || "").trim();
       var city = (cityEl.value || "").trim();
@@ -125,7 +117,7 @@
         return;
       }
       var imgUrl = (imgEl && imgEl.src) ? absolutize(imgEl.src) : "";
-      var text = buildMessage(name, city, imgUrl); // الفالباك يتضمن رابط الصورة
+      var text = buildMessage(name, city, imgUrl); // فالباك يتضمن رابط الصورة
       waBtn.href = buildWaLink(text);
       waBtn.setAttribute("aria-disabled","false");
     }
@@ -133,24 +125,21 @@
     cityEl.addEventListener("input", updateLink);
     updateLink();
 
-    // عند الضغط: نحاول مشاركة "صورة مصغّرة + نص"، وإلا ننتقل للرابط الجاهز
     waBtn.addEventListener("click", async function(e){
       if (waBtn.getAttribute("aria-disabled")==="true") { e.preventDefault(); return; }
-      e.preventDefault(); // نتحكم بالتصرّف
+      e.preventDefault();
       var name = (nameEl.value || "").trim();
       var city = (cityEl.value || "").trim();
       var blob = await captureThumb(imgEl, 700);
       if (blob && canShareFile(blob)) {
         try {
           var f = new File([blob], "product-thumb.png", { type: "image/png" });
-          var textNoLink = buildMessage(name, city, ""); // مع الملف ما منضيف رابط
+          var textNoLink = buildMessage(name, city, "");
           await navigator.share({ files: [f], text: textNoLink });
           return;
-        } catch(eShare) {
-          // المستخدم ألغى أو فشل — نكمل للفالباك
-        }
+        } catch(_) {}
       }
-      // فالباك: فتح واتساب بالنص (يتضمن رابط الصورة)
+      // فالباك: افتح واتساب بالرابط الجاهز (يتضمن رابط الصورة)
       location.href = waBtn.href;
     });
   })();
