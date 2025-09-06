@@ -1,85 +1,133 @@
 
-  function absolutePageUrl(){
-    try{
-      var href=top.location.href||location.href;
-      var i=href.indexOf("#"); if(i>-1) href=href.substring(0,i);
-      var s=href.indexOf("?")>-1?"&":"?";
-      return href+s+"v="+Date.now();
-    }catch(e){ return location.href; }
-  }
+ <!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
+  <title>طلب عرض</title>
 
-  function buildMsg(){
-    var name=(n.value||"").trim();
-    var city=(c.value||"").trim();
-    var lines=[
-      "["+lang.toUpperCase()+"] "+t.confirm,
-      (lang==="ar"?"الاسم: ":(lang==="he"?"שם: ":"Name: "))+name,
-      (lang==="ar"?"المدينة: ":(lang==="he"?"עיר: ":"City: "))+city,
-      absolutePageUrl()
-    ];
-    return lines.join("\\n");
-  }
+  <!-- ========== Link Preview ثابت (OG/Twitter) ========== -->
+  <meta property="og:type" content="website">
+  <meta property="og:title" content="طلب عرض سريع">
+  <meta property="og:description" content="املأ اسمك ومدينتك، والطلب سيفتح مباشرة في واتساب مع معاينة بصورة المنتج.">
+  <meta property="og:image" content="https://madperfume.ps/upload/09-2025/product/68b661a34c273.png">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="طلب عرض سريع">
+  <meta name="twitter:description" content="املأ اسمك ومدينتك، والطلب سيفتح مباشرة في واتساب مع معاينة بصورة المنتج.">
+  <meta name="twitter:image" content="https://madperfume.ps/upload/09-2025/product/68b661a34c273.png">
+  <link rel="icon" href="https://madperfume.ps/upload/09-2025/product/68b661a34c273.png" />
 
-  function apiUrl(txt){ return "https://api.whatsapp.com/send?phone="+WA_NUMBER+"&text="+encodeURIComponent(txt); }
-  function waMeUrl(txt){ return "https://wa.me/"+WA_NUMBER+"?text="+encodeURIComponent(txt); }
+  <style>
+    :root {
+      --bg: #0b0b0b;
+      --card: #121212;
+      --text: #ffffff;
+      --muted: #b8b8b8;
+      --accent: #16a34a;
+      --accent-2: #22c55e;
+      --radius: 18px;
+    }
+    *{box-sizing:border-box}
+    html,body{margin:0;padding:0;background:var(--bg);color:var(--text);font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial,"Tajawal","Noto Naskh Arabic",sans-serif}
+    img{display:block;max-width:100%;height:auto}
 
-  function update(){
-    var ok=(n.value.trim()&&c.value.trim());
-    if(!ok){ a.setAttribute("aria-disabled","true"); a.removeAttribute("href"); a.removeAttribute("data-fallback"); sendHeight(); return; }
-    var msg=buildMsg();
-    a.href=apiUrl(msg);
-    a.setAttribute("data-fallback",waMeUrl(msg));
-    a.setAttribute("aria-disabled","false");
-    a.setAttribute("target","_top"); a.setAttribute("rel","noopener");
-    sendHeight();
-  }
+    .wrap{max-width:740px;margin:0 auto;padding:14px}
+    .hero{background:#000;border-radius:var(--radius);overflow:hidden;box-shadow:0 12px 40px rgba(0,0,0,.35)}
+    .hero img{width:100%;height:auto;display:block}
 
-  // ====== Auto-resize للإطار ======
-  function sendHeight(){
-    try{
-      var h=document.documentElement.scrollHeight||document.body.scrollHeight||560;
-      if(h<360) h=360;
-      parent.postMessage({type:"waFormSize",height:h}, "*");
-    }catch(_){}
-  }
-  // راقب أي تغيير بالحجم
-  if(typeof ResizeObserver!=="undefined"){
-    new ResizeObserver(sendHeight).observe(document.body);
-  }else{
-    window.addEventListener("resize", sendHeight);
-    setInterval(sendHeight, 700);
-  }
+    .card{margin-top:14px;background:var(--card);border:1px solid rgba(255,255,255,.08);border-radius:var(--radius);padding:16px;box-shadow:0 12px 40px rgba(0,0,0,.25)}
+    .card h2{margin:0 0 10px;font-size:20px}
+    .card p.note{margin:6px 0 18px;font-size:14px;color:var(--muted);line-height:1.6}
 
-  n.addEventListener("input",update);
-  c.addEventListener("input",update);
-  update();
+    .grid{display:grid;gap:10px}
+    .field{display:grid;gap:6px}
+    .field label{font-size:14px;color:#ddd}
+    .field input{height:46px;padding:0 12px;border-radius:12px;border:1px solid rgba(255,255,255,.12);background:#0e0e0e;color:var(--text);outline:none}
+    .field input::placeholder{color:#8a8a8a}
 
-  a.addEventListener("click",function(e){
-    if(a.getAttribute("aria-disabled")==="true"){ e.preventDefault(); return; }
-    var started=Date.now(); var fb=a.getAttribute("data-fallback");
-    setTimeout(function(){
-      if(document.visibilityState==="visible" && Date.now()-started>850 && fb){
-        top.location.href=fb;
-      }
-    },900);
-  });
-})();
-</script>
-</body>
-</html>'></iframe>
+    .btn{margin-top:6px;width:100%;height:52px;border:0;border-radius:14px;background:linear-gradient(90deg,var(--accent),var(--accent-2));color:#fff;font-weight:700;font-size:16px;cursor:pointer;box-shadow:0 10px 26px rgba(22,163,74,.35)}
+    .btn:active{transform:translateY(1px)}
+
+    .mini{margin-top:10px;display:flex;align-items:center;gap:10px;background:#0f0f0f;border:1px dashed rgba(255,255,255,.12);border-radius:12px;padding:10px}
+    .mini img{width:56px;height:56px;object-fit:cover;border-radius:10px;border:1px solid rgba(255,255,255,.12)}
+    .mini .t{font-size:12px;color:var(--muted);line-height:1.4}
+    .center{text-align:center;font-size:12px;color:var(--muted);margin:14px 0 4px}
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <!-- الصورة الطويلة (نفس رابط المنتج حسب طلبك) -->
+    <div class="hero">
+      <img src="https://madperfume.ps/upload/09-2025/product/68b661a34c273.png" alt="العرض">
+    </div>
+
+    <!-- نموذج الطلب -->
+    <div class="card" role="form" aria-labelledby="form-title">
+      <h2 id="form-title">أرسل طلبك الآن عبر واتساب</h2>
+      <p class="note">اكتب اسمك ومدينتك. سنرفق رابط الصفحة ليظهر **Link Preview** بصورة المنتج داخل واتساب، مع رابط الصورة كنسخة احتياطية.</p>
+
+      <form id="orderForm" class="grid" autocomplete="on" novalidate>
+        <div class="field">
+          <label for="name">الاسم الكامل</label>
+          <input id="name" name="name" type="text" placeholder="مثال: محمد جلبوني" required minlength="2" />
+        </div>
+
+        <div class="field">
+          <label for="city">المدينة</label>
+          <input id="city" name="city" type="text" placeholder="مثال: حيفا" required minlength="2" />
+        </div>
+
+        <button type="submit" class="btn">إرسال الطلب على واتساب</button>
+
+        <div class="mini">
+          <img src="https://madperfume.ps/upload/09-2025/product/68b661a34c273.png" alt="صورة المنتج">
+          <div class="t">سيُرفق رابط الصفحة لعرض الصورة كـ Link Preview داخل واتساب.</div>
+        </div>
+      </form>
+
+      <div class="center">© جميع الحقوق محفوظة</div>
+    </div>
   </div>
 
   <script>
-    // يستقبل ارتفاع المحتوى ويضبط iframe تلقائياً
-    (function(){
-      var frame = document.getElementById("waFrame");
-      window.addEventListener("message", function(ev){
-        if(!ev || !ev.data || ev.data.type !== "waFormSize") return;
-        var h = parseInt(ev.data.height, 10);
-        if (!isNaN(h) && h > 200) frame.style.height = h + "px";
-      });
-    })();
+    // إعداداتك
+    const PHONE = "972506164130"; // بدون علامة +
+
+    document.getElementById('orderForm').addEventListener('submit', function (e) {
+      e.preventDefault();
+
+      const name = (document.getElementById('name').value || "").trim();
+      const city = (document.getElementById('city').value || "").trim();
+
+      if (name.length < 2 || city.length < 2) {
+        alert("يرجى كتابة الاسم الكامل والمدينة بشكل صحيح.");
+        return;
+      }
+
+      // نحاول استخدام رابط الصفحة النهائي (بعد الرفع) لإظهار الـ Link Preview
+      // أثناء التجربة محليًا، لن يظهر الـ Preview — يظهر بعد الرفع فقط.
+      const pageLink = window.location.href;
+
+      const productImg = "https://madperfume.ps/upload/09-2025/product/68b661a34c273.png";
+
+      // نضع رابط الصفحة أولاً لزيادة احتمال ظهور المعاينة
+      const lines = [
+        pageLink,
+        "",
+        "طلب جديد ✅",
+        `الاسم: ${name}`,
+        `المدينة: ${city}`,
+        "",
+        "🖼️ رابط صورة المنتج (نسخة احتياطية):",
+        productImg
+      ];
+
+      const text = encodeURIComponent(lines.join("\n"));
+      const phone = PHONE.replace(/\D/g, "");
+
+      // فتح واتساب
+      window.location.href = `https://wa.me/${phone}?text=${text}`;
+    });
   </script>
 </body>
 </html>
-
